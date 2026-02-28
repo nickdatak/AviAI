@@ -71,6 +71,7 @@ header h1 {
   padding: 1.5rem;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
+  overflow: visible;
 }
 
 .panel h2 {
@@ -158,8 +159,9 @@ header h1 {
   border-top: none;
   border-radius: 0 0 8px 8px;
   box-shadow: var(--shadow);
-  z-index: 10;
+  z-index: 100;
   margin-top: -1px;
+  pointer-events: auto;
 }
 
 .airport-dropdown.is-open {

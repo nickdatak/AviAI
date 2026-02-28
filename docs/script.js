@@ -25,7 +25,8 @@ const AIRLINE_LOOKUP = {
 };
 
 function formatAirline(code) {
-  return AIRLINE_LOOKUP[code] || code;
+  const key = String(code || '').trim();
+  return AIRLINE_LOOKUP[key] || code;
 }
 
 // BTS airport ID -> { iata, city } lookup for common US airports
@@ -444,7 +445,10 @@ function populateDropdowns() {
   const destinations = metadata.destinations || [];
 
   elements.airlineSelect.innerHTML = '<option value="">Select airline</option>' +
-    airlines.map((code) => `<option value="${code}">${formatAirline(code)}</option>`).join('');
+    airlines.map((code) => {
+      const displayName = formatAirline(code);
+      return `<option value="${code}">${displayName}</option>`;
+    }).join('');
 
   const originOptions = '<option value="">Select origin</option>' +
     origins.map((id) => `<option value="${id}">${formatAirport(id)}</option>`).join('');
@@ -466,6 +470,8 @@ function setupSearchable(selectId, searchId) {
   const search = document.getElementById(searchId);
   const dropdown = document.getElementById(`${selectId}-dropdown`);
 
+  if (!select || !search || !dropdown) return;
+
   function filterAndShowOptions() {
     const query = search.value.trim().toLowerCase();
     const options = Array.from(select.options).filter((opt) => opt.value !== '');
@@ -481,9 +487,13 @@ function setupSearchable(selectId, searchId) {
         const div = document.createElement('div');
         div.className = 'airport-dropdown-option';
         div.textContent = opt.textContent;
+        div.dataset.value = opt.value;
+        div.dataset.label = opt.textContent;
         div.setAttribute('role', 'option');
         div.tabIndex = 0;
-        div.addEventListener('click', () => {
+        // Use mousedown so selection happens before blur closes dropdown
+        div.addEventListener('mousedown', (e) => {
+          e.preventDefault();
           select.value = opt.value;
           search.value = opt.textContent;
           dropdown.classList.remove('is-open');
@@ -508,7 +518,7 @@ function setupSearchable(selectId, searchId) {
     }
   });
   search.addEventListener('blur', () => {
-    setTimeout(closeDropdown, 200);
+    setTimeout(closeDropdown, 150);
   });
 
   select.addEventListener('change', () => {
