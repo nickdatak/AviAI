@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["python313", "libgomp"]
+nixPkgs = ["python3", "libgcc"]
