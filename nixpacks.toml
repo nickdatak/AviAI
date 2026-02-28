@@ -1,3 +1,4 @@
 [phases.setup]
-nixPkgs = ["libgomp"]
-nixLibs = ["libgomp"]
+nixPkgs = ["gcc"]
+nixLibs = ["gcc"]
+aptPkgs = ["libgomp1"]
