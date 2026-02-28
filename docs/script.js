@@ -4,7 +4,7 @@
  */
 
 const API_BASE = 'https://aviai-production.up.railway.app';
-const MISTRAL_API_KEY = 'YOUR_KEY_HERE';
+const MISTRAL_API_KEY = 'WOOaYSCNyVxWzMEtD7unH4gX637P6zJR';
 
 // IATA airline code -> full name lookup (from metadata: AA, AS, B6, DL, F9, G4, HA, MQ, NK, OH, OO, UA, WN, YX)
 const AIRLINE_LOOKUP = {
