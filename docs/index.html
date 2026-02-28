@@ -25,22 +25,24 @@
           </div>
 
           <div class="form-group">
-            <label for="origin">Origin Airport</label>
-            <div class="searchable-select">
+            <label for="origin-search">Origin Airport</label>
+            <div class="searchable-select" data-select-id="origin">
               <input type="text" id="origin-search" placeholder="Search IATA or city..." autocomplete="off">
-              <select id="origin" name="origin" required>
+              <select id="origin" name="origin" required aria-hidden="true" tabindex="-1">
                 <option value="">Loading...</option>
               </select>
+              <div class="airport-dropdown" id="origin-dropdown" role="listbox"></div>
             </div>
           </div>
 
           <div class="form-group">
-            <label for="destination">Destination Airport</label>
-            <div class="searchable-select">
+            <label for="destination-search">Destination Airport</label>
+            <div class="searchable-select" data-select-id="destination">
               <input type="text" id="destination-search" placeholder="Search IATA or city..." autocomplete="off">
-              <select id="destination" name="destination" required>
+              <select id="destination" name="destination" required aria-hidden="true" tabindex="-1">
                 <option value="">Loading...</option>
               </select>
+              <div class="airport-dropdown" id="destination-dropdown" role="listbox"></div>
             </div>
           </div>
 

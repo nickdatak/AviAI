@@ -122,12 +122,66 @@ header h1 {
 }
 
 .searchable-select input {
-  margin-bottom: 0.35rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+}
+
+.searchable-select input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .searchable-select select {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.airport-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: var(--shadow);
+  z-index: 10;
+  margin-top: -1px;
+}
+
+.airport-dropdown.is-open {
   display: block;
-  max-height: 140px;
+}
+
+.airport-dropdown-option {
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.airport-dropdown-option:hover,
+.airport-dropdown-option:focus {
+  background: var(--accent);
+  color: white;
+}
+
+.airport-dropdown-empty {
+  padding: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 .form-row {

@@ -6,6 +6,28 @@
 const API_BASE = 'https://aviai-production.up.railway.app';
 const MISTRAL_API_KEY = 'YOUR_KEY_HERE';
 
+// IATA airline code -> full name lookup (from metadata: AA, AS, B6, DL, F9, G4, HA, MQ, NK, OH, OO, UA, WN, YX)
+const AIRLINE_LOOKUP = {
+  AA: 'American Airlines',
+  AS: 'Alaska Airlines',
+  B6: 'JetBlue Airways',
+  DL: 'Delta Air Lines',
+  F9: 'Frontier Airlines',
+  G4: 'Allegiant Air',
+  HA: 'Hawaiian Airlines',
+  MQ: 'Envoy Air',
+  NK: 'Spirit Airlines',
+  OH: 'PSA Airlines',
+  OO: 'SkyWest Airlines',
+  UA: 'United Airlines',
+  WN: 'Southwest Airlines',
+  YX: 'Republic Airways',
+};
+
+function formatAirline(code) {
+  return AIRLINE_LOOKUP[code] || code;
+}
+
 // BTS airport ID -> { iata, city } lookup for common US airports
 // Unknown IDs will display as the numeric ID
 const BTS_AIRPORT_LOOKUP = {
@@ -422,7 +444,7 @@ function populateDropdowns() {
   const destinations = metadata.destinations || [];
 
   elements.airlineSelect.innerHTML = '<option value="">Select airline</option>' +
-    airlines.map((a) => `<option value="${a}">${a}</option>`).join('');
+    airlines.map((code) => `<option value="${code}">${formatAirline(code)}</option>`).join('');
 
   const originOptions = '<option value="">Select origin</option>' +
     origins.map((id) => `<option value="${id}">${formatAirport(id)}</option>`).join('');
@@ -438,22 +460,63 @@ function setMinDate() {
   elements.departureDate.setAttribute('min', today);
 }
 
-// Searchable airport dropdowns
+// Searchable airport dropdowns - input and dropdown are connected
 function setupSearchable(selectId, searchId) {
   const select = document.getElementById(selectId);
   const search = document.getElementById(searchId);
+  const dropdown = document.getElementById(`${selectId}-dropdown`);
 
+  function filterAndShowOptions() {
+    const query = search.value.trim().toLowerCase();
+    const options = Array.from(select.options).filter((opt) => opt.value !== '');
+    const filtered = query
+      ? options.filter((opt) => opt.textContent.toLowerCase().includes(query))
+      : options;
+
+    dropdown.innerHTML = '';
+    if (filtered.length === 0) {
+      dropdown.innerHTML = '<div class="airport-dropdown-empty">No airports match</div>';
+    } else {
+      filtered.forEach((opt) => {
+        const div = document.createElement('div');
+        div.className = 'airport-dropdown-option';
+        div.textContent = opt.textContent;
+        div.setAttribute('role', 'option');
+        div.tabIndex = 0;
+        div.addEventListener('click', () => {
+          select.value = opt.value;
+          search.value = opt.textContent;
+          dropdown.classList.remove('is-open');
+          search.blur();
+        });
+        dropdown.appendChild(div);
+      });
+    }
+    dropdown.classList.add('is-open');
+  }
+
+  function closeDropdown() {
+    dropdown.classList.remove('is-open');
+  }
+
+  search.addEventListener('focus', filterAndShowOptions);
   search.addEventListener('input', () => {
-    const query = search.value.toLowerCase();
-    const options = select.querySelectorAll('option');
-    options.forEach((opt) => {
-      const text = opt.textContent.toLowerCase();
-      opt.hidden = query && !text.includes(query);
-    });
+    filterAndShowOptions();
+    const selected = select.options[select.selectedIndex];
+    if (!search.value.trim() || (selected && search.value !== selected.textContent)) {
+      select.value = '';
+    }
+  });
+  search.addEventListener('blur', () => {
+    setTimeout(closeDropdown, 200);
   });
 
-  search.addEventListener('focus', () => select.size = Math.min(select.options.length, 8));
-  search.addEventListener('blur', () => setTimeout(() => { select.size = 1; }, 200));
+  select.addEventListener('change', () => {
+    const selected = select.options[select.selectedIndex];
+    if (selected && selected.value) {
+      search.value = selected.textContent;
+    }
+  });
 }
 
 // Form submit - predict
