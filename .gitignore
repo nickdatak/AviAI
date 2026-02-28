@@ -1,0 +1,25 @@
+# Data
+*.csv
+
+# Notebooks and outputs
+*.ipynb
+.ipynb_checkpoints/
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.local
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
