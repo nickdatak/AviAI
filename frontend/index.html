@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Delay Predictor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Flight Delay Predictor</h1>
+      <p class="tagline">Check delay probability and real-time disruptions</p>
+    </header>
+
+    <main class="content-grid">
+      <!-- Left: Form + Prediction -->
+      <section class="panel left-panel">
+        <form id="flight-form" class="flight-form">
+          <div class="form-group">
+            <label for="airline">Airline</label>
+            <select id="airline" name="airline" required>
+              <option value="">Loading...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="origin">Origin Airport</label>
+            <div class="searchable-select">
+              <input type="text" id="origin-search" placeholder="Search IATA or city..." autocomplete="off">
+              <select id="origin" name="origin" required>
+                <option value="">Loading...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="destination">Destination Airport</label>
+            <div class="searchable-select">
+              <input type="text" id="destination-search" placeholder="Search IATA or city..." autocomplete="off">
+              <select id="destination" name="destination" required>
+                <option value="">Loading...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="departure-date">Departure Date</label>
+              <input type="date" id="departure-date" name="departure_date" required>
+            </div>
+            <div class="form-group">
+              <label for="departure-hour">Departure Hour (0–23)</label>
+              <input type="range" id="departure-hour" name="departure_hour" min="0" max="23" value="12">
+              <span class="hour-value" id="hour-display">12</span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="submit-btn">
+            Check Flight
+          </button>
+        </form>
+
+        <!-- Loading spinner -->
+        <div id="loading" class="loading hidden" aria-hidden="true">
+          <div class="spinner"></div>
+          <p>Analyzing flight...</p>
+        </div>
+
+        <!-- Result card -->
+        <div id="result-card" class="result-card hidden">
+          <div class="result-probability" id="result-probability">--%</div>
+          <span class="risk-badge" id="risk-badge">Low</span>
+          <p class="result-message" id="result-message"></p>
+        </div>
+
+        <div id="form-error" class="error-message hidden"></div>
+      </section>
+
+      <!-- Right: Mistral AI News Panel -->
+      <section class="panel right-panel">
+        <h2>Mistral AI News Check</h2>
+        <p class="panel-description">Check for current disruptions, strikes, weather, or airspace closures on your route.</p>
+        <button type="button" class="btn btn-secondary" id="mistral-btn">Check for Disruptions</button>
+
+        <div id="mistral-loading" class="loading hidden" aria-hidden="true">
+          <div class="spinner"></div>
+          <p>Searching for disruptions...</p>
+        </div>
+
+        <div id="mistral-result" class="mistral-result hidden">
+          <div class="mistral-timestamp" id="mistral-timestamp"></div>
+          <div class="mistral-content" id="mistral-content"></div>
+        </div>
+
+        <div id="mistral-error" class="error-message hidden"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
