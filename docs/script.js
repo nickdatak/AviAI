@@ -469,8 +469,9 @@ function setupSearchable(selectId, searchId) {
   const select = document.getElementById(selectId);
   const search = document.getElementById(searchId);
   const dropdown = document.getElementById(`${selectId}-dropdown`);
+  const container = search.closest('.searchable-select');
 
-  if (!select || !search || !dropdown) return;
+  if (!select || !search || !dropdown || !container) return;
 
   function filterAndShowOptions() {
     const query = search.value.trim().toLowerCase();
@@ -519,6 +520,13 @@ function setupSearchable(selectId, searchId) {
   });
   search.addEventListener('blur', () => {
     setTimeout(closeDropdown, 150);
+  });
+
+  // Close when clicking outside (more reliable than blur)
+  document.addEventListener('click', function handleOutsideClick(e) {
+    if (!dropdown.classList.contains('is-open')) return;
+    if (container.contains(e.target)) return;
+    closeDropdown();
   });
 
   select.addEventListener('change', () => {
