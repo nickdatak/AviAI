@@ -7,6 +7,15 @@ const API_BASE = 'https://aviai-production.up.railway.app';
 const MISTRAL_API_KEY = 'WOOaYSCNyVxWzMEtD7unH4gX637P6zJR';
 const FLIGHTAPI_KEY = '69a34ac0c32d581cf926c37d'; // Get from https://docs.flightapi.io
 
+/** Base path for assets (works on GitHub Pages: /repo-name/ or /repo-name/docs/) */
+function getAssetBase() {
+  if (typeof document === 'undefined' || !document.location) return './assets/';
+  const path = document.location.pathname;
+  const lastSlash = path.lastIndexOf('/');
+  if (lastSlash <= 0) return './assets/';
+  return path.substring(0, lastSlash + 1) + 'assets/';
+}
+
 // IATA airline code -> full name lookup (from metadata: AA, AS, B6, DL, F9, G4, HA, MQ, NK, OH, OO, UA, WN, YX)
 const AIRLINE_LOOKUP = {
   AA: 'American Airlines',
@@ -44,15 +53,16 @@ const AIRLINE_LOGO_PLACEHOLDER = 'airplane.png';
 function getAirlineLogoPath(airlineCode) {
   const code = String(airlineCode || '').trim().toUpperCase();
   const filename = AIRLINE_LOGO_ASSETS[code] || AIRLINE_LOGO_PLACEHOLDER;
-  return 'assets/' + filename;
+  return getAssetBase() + filename;
 }
 
 // Aircraft type -> image in assets (Airbus: LH_A380_l.png, Boeing: LH_B744_l.png)
 function getAircraftImagePath(aircraftStr) {
   const s = String(aircraftStr || '').trim().toUpperCase();
   if (!s) return '';
-  if (/AIRBUS|^A3\d{2}|^A3\d|^A3\b|^A32|^A33|^A34|^A35|^A38/.test(s)) return 'assets/LH_A380_l.png';
-  if (/BOEING|^B7\d{2}|^B7\d|^B7\b|^B73|^B74|^B75|^B76|^B77|^B78/.test(s)) return 'assets/LH_B744_l.png';
+  const base = getAssetBase();
+  if (/AIRBUS|^A3\d{2}|^A3\d|^A3\b|^A32|^A33|^A34|^A35|^A38/.test(s)) return base + 'LH_A380_l.png';
+  if (/BOEING|^B7\d{2}|^B7\d|^B7\b|^B73|^B74|^B75|^B76|^B77|^B78/.test(s)) return base + 'LH_B744_l.png';
   return '';
 }
 
