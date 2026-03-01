@@ -533,6 +533,10 @@ body:has(#main-content.dashboard:not(.hidden)) .app {
   line-height: 1.1;
 }
 
+.card-delay .result-probability.delay-high {
+  color: var(--countdown-red);
+}
+
 .card-delay .result-message {
   grid-column: 1;
   grid-row: 3;

@@ -845,6 +845,9 @@ function setLoading(on) {
 function showResult(data) {
   const prob = (data.delay_probability * 100).toFixed(1);
   elements.resultProbability.textContent = `${prob}%`;
+  if (elements.resultProbability) {
+    elements.resultProbability.classList.toggle('delay-high', data.delay_probability > 0.5);
+  }
   elements.resultMessage.textContent = data.is_delayed
     ? 'This flight is likely to be delayed.'
     : 'This flight looks on time.';
