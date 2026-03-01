@@ -1,19 +1,22 @@
-/* Flight Delay Predictor – clean, minimal design */
+/* AviAI Dashboard – design matching reference */
 
 :root {
-  --bg-primary: #0f1419;
-  --bg-secondary: #1a2332;
-  --bg-card: #243447;
-  --text-primary: #e7e9ea;
-  --text-secondary: #8b98a5;
-  --accent: #1d9bf0;
-  --accent-hover: #1a8cd8;
-  --success: #00ba7c;
-  --warning: #ffad1f;
-  --danger: #f4212e;
-  --border: #38444d;
-  --radius: 12px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --bg-dark: #1c1c1e;
+  --bg-page: #2c2c2e;
+  --card-white: #ffffff;
+  --text-dark: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --accent-blue: #007aff;
+  --accent-green: #34c759;
+  --accent-orange: #e8d5c4;
+  --accent-orange-border: #d4b896;
+  --countdown-red: #8b3a3a;
+  --countdown-red-dark: #6b2a2a;
+  --map-olive: #5c5d4f;
+  --map-olive-light: #6d6e5f;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 * {
@@ -22,351 +25,622 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-dark);
   line-height: 1.5;
   min-height: 100vh;
-  padding: 2rem 1rem;
+  padding: 1rem;
+  overflow: hidden;
+  height: 100vh;
 }
 
-.container {
-  max-width: 800px;
+/* When dashboard is visible: fill viewport, no scroll */
+body:has(#main-content.dashboard:not(.hidden)) {
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 0;
+}
+
+body:has(#main-content.dashboard:not(.hidden)) .app {
+  height: 100%;
+  max-width: none;
+}
+
+.app {
+  max-width: 1200px;
   margin: 0 auto;
 }
 
-header {
+.hidden {
+  display: none !important;
+}
+
+/* ----- Landing (flight number step) ----- */
+.flight-number-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.landing-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
-header h1 {
-  font-size: 1.75rem;
+.landing-header h1 {
+  font-size: 3.25rem;
   font-weight: 700;
-  margin: 0 0 0.25rem;
-}
-
-.tagline {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+  color: var(--card-white);
   margin: 0;
 }
 
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
+.landing-logo {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  margin: 0 auto;
 }
 
-@media (max-width: 700px) {
-  .content-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.panel {
-  background: var(--bg-secondary);
+.flight-number-panel {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card-white);
   border-radius: var(--radius);
   padding: 1.5rem;
-  border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  overflow: visible;
 }
 
-.panel h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem;
-}
-
-.panel-description {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin: 0 0 1rem;
-}
-
-/* Form */
-.flight-form .form-group {
-  margin-bottom: 1rem;
-}
-
-.flight-form label {
+.flight-number-panel label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 0.35rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
-.flight-form input[type="text"],
-.flight-form input[type="date"],
-.flight-form select {
+.flight-number-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.flight-number-row input {
   width: 100%;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.95rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-primary);
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  min-height: 44px;
+  background: #f5f5f7;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius-sm);
+  color: var(--text-dark);
+  box-sizing: border-box;
 }
 
-.flight-form input:focus,
-.flight-form select:focus {
+.flight-number-row input:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--accent-blue);
 }
 
-/* Searchable airport selects */
-.searchable-select {
-  position: relative;
+.flight-number-row input::placeholder {
+  color: var(--text-muted);
 }
 
-.searchable-select input {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.95rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-primary);
+.flight-number-panel .btn-primary {
+  min-height: 44px;
+  font-size: 1rem;
+  padding: 0.6rem 1.25rem;
 }
 
-.searchable-select input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.searchable-select select {
-  position: absolute;
-  left: -9999px;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.airport-dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  box-shadow: var(--shadow);
-  z-index: 100;
-  margin-top: -1px;
-  pointer-events: auto;
-}
-
-.airport-dropdown.is-open {
-  display: block;
-}
-
-.airport-dropdown-option {
-  padding: 0.6rem 0.75rem;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-
-.airport-dropdown-option:hover,
-.airport-dropdown-option:focus {
-  background: var(--accent);
-  color: white;
-}
-
-.airport-dropdown-empty {
-  padding: 0.75rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 1rem;
-}
-
-@media (max-width: 500px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-.hour-value {
-  display: inline-block;
-  margin-left: 0.5rem;
-  font-weight: 600;
-  min-width: 2rem;
-}
-
-input[type="range"] {
-  width: 100%;
-  accent-color: var(--accent);
-}
-
-/* Buttons */
 .btn {
-  display: inline-block;
-  padding: 0.65rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  transition: opacity 0.2s, transform 0.05s;
 }
 
 .btn:hover {
-  transform: translateY(-1px);
+  opacity: 0.95;
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
+  background: var(--text-dark);
+  color: var(--card-white);
   width: 100%;
-  margin-top: 0.5rem;
+  min-height: 48px;
 }
 
-.btn-primary:hover {
-  background: var(--accent-hover);
+.btn-dark {
+  background: var(--text-dark);
+  color: var(--card-white);
+  width: 100%;
+  min-height: 44px;
 }
 
-.btn-secondary {
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+/* ----- Dashboard grid ----- */
+.dashboard {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 25px;
+  height: 100%;
+  min-height: 0;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.weather-cards-wrap {
+  display: contents;
+}
+
+.weather-cards-wrap.hidden {
+  display: none !important;
+}
+
+.weather-cards-wrap.hidden .card-weather {
+  display: none !important;
+}
+
+.weather-cards-wrap:not(.hidden) .card-weather {
+  display: flex !important;
+}
+
+/* Card base */
+.card {
+  background: var(--card-white);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-title {
+  font-size: clamp(0.8rem, 1.2vw, 1rem);
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 0.15rem;
+  flex-shrink: 0;
+}
+
+.mistral-symbol-inline {
+  height: 1em;
+  width: auto;
+  vertical-align: middle;
+  margin-right: 0.2em;
+}
+
+.card-description,
+.card-subtext {
+  font-size: clamp(0.7rem, 1vw, 0.875rem);
+  color: var(--text-muted);
+  margin: 0 0 0.35rem;
+}
+
+/* 1. Flight Details card – spans 2 rows; content centered */
+.card-flight-details {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+}
+
+.flight-details-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  flex-shrink: 0;
   width: 100%;
 }
 
-.btn-secondary:hover {
-  background: var(--border);
+.flight-data-content {
+  padding-top: 50px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
 }
 
-/* Loading */
-.loading {
+.flight-number-big {
+  font-size: clamp(1.1rem, 2vh, 1.5rem);
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+
+.airline-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: #f0f0f0;
+}
+
+.airline-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.airline-logo-card {
+  width: 40px;
+  height: 40px;
+}
+
+.flight-data-content .flight-data-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  color: var(--text-dark);
+}
+
+.flight-data-content .flight-data-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  font-size: clamp(0.8rem, 1.1vw, 0.95rem);
+  color: var(--text-dark);
+}
+
+/* Ticket layout: vertical stack – origin, then dashed line + pill + date, then destination, then Terminal/Gate; centered and larger */
+.flight-data-card-ticket {
+  gap: 0.75rem 0;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+
+/* Vertical: one airport below the other */
+.flight-data-row-route-vertical {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.5rem;
+  min-width: 0;
+  width: 100%;
 }
 
-.loading.hidden {
-  display: none;
+.flight-data-row-route-vertical .flight-data-col-origin,
+.flight-data-row-route-vertical .flight-data-col-destination {
+  align-items: center;
+  text-align: center;
 }
 
-.spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid var(--border);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.flight-data-col-origin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: flex-start;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.flight-data-col-destination {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  align-items: flex-end;
+  text-align: right;
 }
 
-.loading p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-/* Result card */
-.result-card {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  animation: fadeIn 0.4s ease-out;
-}
-
-.result-card.hidden {
-  display: none;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.result-probability {
-  font-size: 2.5rem;
+.flight-data-airport {
   font-weight: 700;
+  font-size: clamp(1.6rem, 4vh, 2.25rem);
+  color: var(--text-dark);
   line-height: 1.2;
 }
 
-.risk-badge {
+.flight-data-city {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text-dark);
+}
+
+.flight-data-pin {
   display: inline-block;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.8rem;
+  width: 0.5em;
+  height: 0.65em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231a1a1a'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.flight-data-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.flight-data-dashed-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 140px;
+}
+
+.flight-data-dashed-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 0;
+  border-top: 2px dashed var(--text-muted);
+  opacity: 0.6;
+}
+
+.flight-data-duration {
+  position: relative;
+  z-index: 1;
+  padding: 0 0.5rem;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  font-weight: 500;
+  color: var(--text-dark);
+  background: var(--card-white);
+  white-space: nowrap;
+}
+
+.flight-data-date-below {
+  font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+  color: var(--text-dark);
+}
+
+/* Bottom row: Terminal, Gate (no seat) */
+.flight-data-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  padding-top: 0.75rem;
+  margin-top: 0.2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.flight-data-meta-item {
+  font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+  color: var(--text-dark);
+}
+
+.flight-data-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.flight-data-meta-row strong {
+  color: var(--text-dark);
+}
+
+.flight-data-label {
+  display: block;
+  font-size: 0.65rem;
   font-weight: 600;
-  border-radius: 6px;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-left: 0.5rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.1rem;
 }
 
-.risk-badge.low {
-  background: rgba(0, 186, 124, 0.2);
-  color: var(--success);
+.flight-data-time {
+  color: var(--text-muted);
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
 }
 
-.risk-badge.medium {
-  background: rgba(255, 173, 31, 0.2);
-  color: var(--warning);
+.flight-data-meta {
+  display: inline-block;
+  margin-right: 0.35rem;
+  font-size: inherit;
+  color: var(--text-muted);
 }
 
-.risk-badge.high {
-  background: rgba(244, 33, 46, 0.2);
-  color: var(--danger);
-}
+.flight-data-meta:last-child { margin-right: 0; }
 
-.result-message {
-  margin: 1rem 0 0;
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-}
-
-/* Error messages */
-.error-message {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background: rgba(244, 33, 46, 0.15);
-  border: 1px solid rgba(244, 33, 46, 0.4);
-  border-radius: 8px;
-  color: var(--danger);
+.flight-data-empty {
+  color: var(--text-muted);
+  margin: 0;
   font-size: 0.9rem;
 }
 
-.error-message.hidden {
+.flight-data-empty a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+
+.flight-data-empty a:hover {
+  text-decoration: underline;
+}
+
+/* 2. Probability of Delay card – title/subtext left, big number right */
+.card-delay {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 0.25rem 0;
+  align-items: start;
+}
+
+.card-delay .card-title {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0 0 0.15rem;
+}
+
+.card-delay .delay-result-wrap {
+  display: contents;
+}
+
+.card-delay .delay-result-wrap.hidden {
   display: none;
 }
 
-/* Mistral result */
+.delay-value-wrap {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0.25rem 0 0;
+}
+
+.card-delay .result-probability {
+  font-size: clamp(2rem, 5vh, 3.25rem);
+  font-weight: 700;
+  color: var(--accent-green);
+  line-height: 1.1;
+}
+
+.card-delay .result-message {
+  grid-column: 1;
+  grid-row: 3;
+  margin: 0.5rem 0 0;
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.card-delay .loading,
+.card-delay .error-message {
+  grid-column: 1 / -1;
+}
+
+.delay-result-wrap.hidden {
+  display: none;
+}
+
+/* 3. Mistral AI News Check – orange card, spans 2 rows; result below dashed line */
+.card-mistral-news {
+  background: var(--accent-orange);
+  border: 1px solid var(--accent-orange-border);
+  grid-column: 1;
+  grid-row: 2 / span 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mistral-news-top {
+  flex-shrink: 0;
+}
+
+.card-mistral-news .card-title {
+  color: var(--text-dark);
+}
+
+.card-mistral-news .card-description {
+  color: var(--text-dark);
+  opacity: 0.9;
+  margin-bottom: 0.75rem;
+}
+
+.card-mistral-news .btn-dark {
+  margin-bottom: 0;
+}
+
+/* Ticket-style dashed separator – always visible */
+.mistral-result-separator {
+  display: block;
+  flex-shrink: 0;
+  height: 12px;
+  margin: 0.75rem 0;
+  position: relative;
+  border-top: 2px dashed rgba(0, 0, 0, 0.25);
+}
+
+/* Semicircular cutouts at left and right (news card: orange) */
+.card-mistral-news .mistral-result-separator::before,
+.card-mistral-news .mistral-result-separator::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  width: 24px;
+  height: 12px;
+  background: var(--accent-orange);
+  border-radius: 0 0 12px 12px;
+}
+
+.card-mistral-news .mistral-result-separator::before {
+  left: 0;
+}
+
+.card-mistral-news .mistral-result-separator::after {
+  right: 0;
+}
+
+/* Suggestion card: same line, cutouts match white card */
+.card-suggestion .mistral-result-separator::before,
+.card-suggestion .mistral-result-separator::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  width: 24px;
+  height: 12px;
+  background: var(--card-white);
+  border-radius: 0 0 12px 12px;
+}
+
+.card-suggestion .mistral-result-separator::before {
+  left: 0;
+}
+
+.card-suggestion .mistral-result-separator::after {
+  right: 0;
+}
+
 .mistral-result {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  line-height: 1.5;
 }
 
 .mistral-result.hidden {
@@ -374,12 +648,451 @@ input[type="range"] {
 }
 
 .mistral-timestamp {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
 }
 
 .mistral-content {
+  color: var(--text-dark);
+}
+
+/* 4 & 8. Weather cards – side by side in bottom row */
+.card-weather {
+  grid-column: span 1;
+}
+
+.weather-cards-wrap .card-weather:first-child {
+  grid-column: 3;
+  grid-row: 4;
+}
+
+.weather-cards-wrap .card-weather:last-child {
+  grid-column: 4;
+  grid-row: 4;
+}
+
+.card-weather .weather-location {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.weather-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-auto-rows: auto;
+  gap: 0.5rem 1rem;
+  align-items: start;
+  min-height: 4rem;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.weather-content .desc {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.weather-content .meta {
+  grid-column: 1;
   font-size: 0.95rem;
-  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.weather-content .temp {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  align-self: end;
+  justify-self: end;
+  margin: 0;
+  font-size: clamp(2rem, 5vh, 3.25rem);
+  font-weight: 700;
+  color: var(--accent-blue);
+  line-height: 1.1;
+}
+
+.weather-loading.hidden,
+.weather-error.hidden {
+  display: none;
+}
+
+.weather-loading {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.weather-error {
+  font-size: 0.85rem;
+  color: #c93400;
+}
+
+/* 5. Countdown card – removed */
+
+/* 6. AviAi Hero card */
+.card-hero {
+  grid-column: 3 / -1;
+  grid-row: 2;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.3) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-bg-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.hero-bg::after {
+  display: none;
+}
+
+.hero-brand,
+.hero-tagline {
+  position: relative;
+  z-index: 2;
+  color: var(--card-white);
+}
+
+.hero-brand {
+  font-size: clamp(1rem, 2vh, 1.5rem);
+  font-weight: 700;
+}
+
+.hero-tagline {
+  font-size: clamp(1.1rem, 2.5vh, 1.5rem);
+  font-style: italic;
+  letter-spacing: 0.02em;
+  align-self: flex-end;
+}
+
+/* 9. Aircraft card – bottom left corner */
+.card-aircraft {
+  grid-column: 1;
+  grid-row: 4;
+}
+
+.aircraft-type {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 0.5rem;
+}
+
+.aircraft-image {
+  width: 100%;
+  flex: 1;
+  min-height: 60px;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.aircraft-image[src=""] {
+  display: none;
+}
+
+/* 10. Seat selection – removed */
+
+/* 11. Airline info card – single cell */
+.card-airline {
+  grid-column: 4;
+  grid-row: 3;
+}
+
+.airline-details {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.airline-contact {
+  margin: 0;
+}
+
+.airline-contact-line {
+  margin: 0 0 0.35rem;
+}
+
+.airline-contact-line:last-of-type {
+  margin-bottom: 0;
+}
+
+.airline-details a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+
+.airline-details a:hover {
+  text-decoration: underline;
+}
+
+.airline-placeholder-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Departure & Arrival Time card */
+.card-times {
+  grid-column: 3;
+  grid-row: 3;
+  border: 1px dashed rgba(0, 0, 0, 0.2);
+}
+
+.card-times .card-title {
+  margin-bottom: 0.5rem;
+}
+
+.times-content {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.time-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+}
+
+.time-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.time-value {
+  font-size: clamp(1.4rem, 2.8vh, 1.9rem);
+  font-weight: 700;
+  color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 12. Map card – removed */
+
+/* 13. Mistral Suggestion card – spans 2 rows (same as news) */
+.card-suggestion {
+  grid-column: 2;
+  grid-row: 3 / span 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.card-suggestion .card-title {
+  flex-shrink: 0;
+}
+
+.suggestion-text {
+  flex: 1;
+  font-size: clamp(0.8rem, 1vw, 0.95rem);
+  color: var(--text-dark);
+  margin: 0 0 0.5rem;
+  min-height: 0;
+  overflow: auto;
+}
+
+.suggestion-text.hidden {
+  display: none;
+}
+
+.suggestion-loading.hidden {
+  display: none;
+}
+
+.suggestion-result {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin-bottom: 0.5rem;
+}
+
+.suggestion-result.hidden {
+  display: none;
+}
+
+.suggestion-timestamp {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.suggestion-content {
+  font-size: clamp(0.8rem, 1vw, 0.9rem);
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.card-suggestion .error-message {
+  margin-bottom: 0.5rem;
+}
+
+.btn-suggestion {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+/* Local time cards – origin at (4,1), destination at (3,1) */
+.card-clock {
+  align-items: center;
+  justify-content: center;
+  background: #1a1a1a;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+}
+
+.card-clock-origin {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.card-clock-dest {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.card-clock .clock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.card-clock .clock-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 0.35rem;
+  text-align: center;
+}
+
+.card-clock .clock-time {
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+}
+
+/* Loading & errors */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.loading.hidden {
+  display: none;
+}
+
+.loading p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e0e0e0;
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-message {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(201, 52, 0, 0.1);
+  border: 1px solid rgba(201, 52, 0, 0.3);
+  border-radius: var(--radius-sm);
+  color: #c93400;
+  font-size: 0.85rem;
+}
+
+.error-message.hidden {
+  display: none;
+}
+
+/* Responsive – single column on mobile, no hero video */
+@media (max-width: 700px) {
+  .dashboard {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(min-content, auto);
+    gap: 1rem;
+    height: auto;
+    min-height: min(100%, 100vh);
+    overflow: visible;
+    padding-bottom: 1rem;
+  }
+
+  /* Stack every card in one column (document order) */
+  .card-flight-details,
+  .card-delay,
+  .card-mistral-news,
+  .card-clock-origin,
+  .card-clock-dest,
+  .card-aircraft,
+  .card-airline,
+  .card-times,
+  .card-suggestion,
+  .weather-cards-wrap,
+  .weather-cards-wrap .card-weather {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  /* Hide hero video on mobile */
+  .card-hero {
+    display: none !important;
+  }
+
+  /* Weather: two cards stacked */
+  .weather-cards-wrap:not(.hidden) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .weather-cards-wrap:not(.hidden) .card-weather {
+    display: flex !important;
+  }
 }

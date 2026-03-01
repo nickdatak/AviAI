@@ -5,6 +5,7 @@
 
 const API_BASE = 'https://aviai-production.up.railway.app';
 const MISTRAL_API_KEY = 'WOOaYSCNyVxWzMEtD7unH4gX637P6zJR';
+const FLIGHTAPI_KEY = '69a34ac0c32d581cf926c37d'; // Get from https://docs.flightapi.io
 
 // IATA airline code -> full name lookup (from metadata: AA, AS, B6, DL, F9, G4, HA, MQ, NK, OH, OO, UA, WN, YX)
 const AIRLINE_LOOKUP = {
@@ -27,6 +28,114 @@ const AIRLINE_LOOKUP = {
 function formatAirline(code) {
   const key = String(code || '').trim();
   return AIRLINE_LOOKUP[key] || code;
+}
+
+// IATA code -> filename in docs/assets (use placeholder for unknown)
+const AIRLINE_LOGO_ASSETS = {
+  AA: 'dezeen_American-Airlines-logo-and-livery_4a-300x300.jpg',
+  B6: 'jetblue-logo-editorial-illustrative-white-background-logo-icon-vector-logos-icons-set-social-media-flat-banner-vectors-svg-eps-210442882.jpg.webp',
+  HA: 'Hawaiian-Airlines-Logo.png',
+  NK: 'spirit-airlines-logo-png_seeklogo-278034.png',
+  UA: 'united_airlines_icon-logo_brandlogos.net_54inw.png',
+  DL: 'delta_c_r.png',
+};
+const AIRLINE_LOGO_PLACEHOLDER = 'airplane.png';
+
+function getAirlineLogoPath(airlineCode) {
+  const code = String(airlineCode || '').trim().toUpperCase();
+  const filename = AIRLINE_LOGO_ASSETS[code] || AIRLINE_LOGO_PLACEHOLDER;
+  return 'assets/' + filename;
+}
+
+// Aircraft type -> image in assets (Airbus: LH_A380_l.png, Boeing: LH_B744_l.png)
+function getAircraftImagePath(aircraftStr) {
+  const s = String(aircraftStr || '').trim().toUpperCase();
+  if (!s) return '';
+  if (/AIRBUS|^A3\d{2}|^A3\d|^A3\b|^A32|^A33|^A34|^A35|^A38/.test(s)) return 'assets/LH_A380_l.png';
+  if (/BOEING|^B7\d{2}|^B7\d|^B7\b|^B73|^B74|^B75|^B76|^B77|^B78/.test(s)) return 'assets/LH_B744_l.png';
+  return '';
+}
+
+// Major airlines: contact info (address, phone, website). Others show placeholder with *.
+const AIRLINE_INFO = {
+  AA: {
+    address: '1 Skyview Drive, Fort Worth, TX 76155, USA',
+    phone: '682 278‑9000',
+    phoneNote: 'corporate / HQ',
+    website: 'https://aa.com',
+  },
+  DL: {
+    address: 'Hartsfield‑Jackson Atlanta International Airport, Atlanta',
+    phone: '1‑800‑221‑1212',
+    phoneNote: 'reservations / customer service',
+    website: 'https://delta.com',
+  },
+  UA: {
+    address: '1200 E. Algonquin Road, Elk Grove Township, IL ',
+    phone: '1‑800‑864‑8331',
+    phoneNote: 'reservations',
+    website: 'https://united.com',
+  },
+  WN: {
+    address: '2702 Love Field Drive, Dallas, TX 75235 (P.O. Box 36647‑1CR, Dallas, TX 75235)',
+    phone: '1‑800‑435‑9792',
+    phoneNote: 'customer service',
+    website: 'https://southwest.com',
+  },
+  B6: {
+    address: '27‑01 Queen Plaza North, Long Island City, NY 11101 (P.O. Box 17435, Salt Lake City, UT 84117)',
+    phone: '1‑800‑538‑2583',
+    phoneNote: 'customer support',
+    website: 'https://jetblue.com',
+  },
+  AS: {
+    address: '19300 Commerce Way, SeaTac, WA 98198 (P.O. Box 68900, Seattle, WA 98168)',
+    phone: '1‑800‑252‑7522',
+    phoneNote: 'customer relations',
+    website: 'https://alaskaair.com',
+  },
+  NK: {
+    address: '2800 Executive Way, Miramar, FL 33025',
+    phone: '1‑855‑728‑3555',
+    phoneNote: 'customer relations',
+    website: 'https://spirit.com',
+  },
+  F9: {
+    address: '4545 Airport Way, Denver, CO 80239',
+    phone: '1‑602‑333‑5925',
+    phoneNote: 'customer relations',
+    website: 'https://flyfrontier.com',
+  },
+  HA: {
+    address: '3375 Koapaka Street, Suite G‑350, Honolulu, HI 96819 (P.O. Box 30008, Honolulu, HI 96820)',
+    phone: '1‑800‑367‑5320',
+    phoneNote: 'general customer service',
+    website: 'https://hawaiianairlines.com',
+  },
+  SY: {
+    address: '4301 West 78th Street, Minneapolis, MN 55435 (2005 Cargo Road, Minneapolis, MN 55450)',
+    phone: '1‑952‑658‑1133',
+    phoneNote: 'corporate / customer service',
+    website: 'https://suncountry.com',
+  },
+};
+
+function getAirlineInfo(airlineCode) {
+  const code = String(airlineCode || '').trim().toUpperCase();
+  return AIRLINE_INFO[code] || null;
+}
+
+function renderAirlineDetails(airlineCode) {
+  const info = getAirlineInfo(airlineCode);
+  if (info) {
+    const parts = [
+      `<p class="airline-contact-line"><strong>Address:</strong> ${info.address}</p>`,
+      `<p class="airline-contact-line"><strong>Phone:</strong> ${info.phone}${info.phoneNote ? ` (${info.phoneNote})` : ''}</p>`,
+      `<p class="airline-contact-line"><strong>Website:</strong> <a href="${info.website}" target="_blank" rel="noopener">${info.website.replace(/^https:\/\//, '')}</a></p>`,
+    ];
+    return parts.join('');
+  }
+  return '<p class="airline-contact airline-placeholder">Website, phone, and address available from airline.<sup>*</sup></p><p class="airline-placeholder-note"><sup>*</sup> Placeholder — airline not in our database.</p>';
 }
 
 // BTS airport ID -> { iata, city } lookup for common US airports
@@ -382,6 +491,77 @@ const BTS_AIRPORT_LOOKUP = {
   16869: { iata: 'LEX', city: 'Lexington' },
 };
 
+// IATA -> { lat, lon } for Open-Meteo weather (major US airports)
+const AIRPORT_COORDS = {
+  ABQ: { lat: 35.0402, lon: -106.6091 },
+  ANC: { lat: 61.1743, lon: -149.9962 },
+  ATL: { lat: 33.6367, lon: -84.4281 },
+  AUS: { lat: 30.1975, lon: -97.6664 },
+  BOS: { lat: 42.3656, lon: -71.0096 },
+  BUR: { lat: 34.2006, lon: -118.3587 },
+  BWI: { lat: 39.1754, lon: -76.6683 },
+  CLE: { lat: 41.4117, lon: -81.8498 },
+  CLT: { lat: 35.2144, lon: -80.9473 },
+  CVG: { lat: 39.0488, lon: -84.6678 },
+  DAL: { lat: 32.8471, lon: -96.8518 },
+  DEN: { lat: 39.8561, lon: -104.6737 },
+  DFW: { lat: 32.8968, lon: -97.038 },
+  DTW: { lat: 42.2124, lon: -83.3534 },
+  EWR: { lat: 40.6895, lon: -74.1745 },
+  FLL: { lat: 26.0726, lon: -80.1527 },
+  HNL: { lat: 21.3187, lon: -157.9225 },
+  IAD: { lat: 38.9445, lon: -77.4558 },
+  IAH: { lat: 29.9902, lon: -95.3368 },
+  IND: { lat: 39.7173, lon: -86.2944 },
+  JFK: { lat: 40.6398, lon: -73.7789 },
+  LAS: { lat: 36.0840, lon: -115.1537 },
+  LAX: { lat: 33.9425, lon: -118.4080 },
+  LGA: { lat: 40.7769, lon: -73.8740 },
+  MCO: { lat: 28.4312, lon: -81.3081 },
+  MDW: { lat: 41.7860, lon: -87.7524 },
+  MEM: { lat: 35.0424, lon: -89.9767 },
+  MIA: { lat: 25.7959, lon: -80.2870 },
+  MSP: { lat: 44.8820, lon: -93.2218 },
+  MSY: { lat: 29.9934, lon: -90.2580 },
+  OAK: { lat: 37.7213, lon: -122.2207 },
+  ONT: { lat: 34.0560, lon: -117.6012 },
+  ORD: { lat: 41.9742, lon: -87.9073 },
+  PDX: { lat: 45.5887, lon: -122.5975 },
+  PHL: { lat: 39.8729, lon: -75.2437 },
+  PHX: { lat: 33.4373, lon: -112.0078 },
+  PIT: { lat: 40.4915, lon: -80.2329 },
+  SAN: { lat: 32.7338, lon: -117.1933 },
+  SAT: { lat: 29.5337, lon: -98.4698 },
+  SEA: { lat: 47.4502, lon: -122.3088 },
+  SFO: { lat: 37.6213, lon: -122.3790 },
+  SJC: { lat: 37.3626, lon: -121.9290 },
+  SLC: { lat: 40.7899, lon: -111.9791 },
+  SNA: { lat: 33.6757, lon: -117.8682 },
+  STL: { lat: 38.7487, lon: -90.3700 },
+  TPA: { lat: 27.9755, lon: -82.5332 },
+  TUS: { lat: 32.1161, lon: -110.9410 },
+};
+
+function getCoordsForAirport(iata) {
+  const code = String(iata || '').trim().toUpperCase();
+  return AIRPORT_COORDS[code] || null;
+}
+
+// IATA -> IANA timezone for local time display
+const AIRPORT_TIMEZONES = {
+  JFK: 'America/New_York', LGA: 'America/New_York', EWR: 'America/New_York',
+  LAX: 'America/Los_Angeles', SFO: 'America/Los_Angeles', SAN: 'America/Los_Angeles',
+  ORD: 'America/Chicago', MDW: 'America/Chicago', DFW: 'America/Chicago', IAH: 'America/Chicago',
+  DEN: 'America/Denver', PHX: 'America/Phoenix',
+  ATL: 'America/New_York', MIA: 'America/New_York', BOS: 'America/New_York',
+  SEA: 'America/Los_Angeles', PDX: 'America/Los_Angeles', LAS: 'America/Los_Angeles',
+  MSP: 'America/Chicago', DTW: 'America/Detroit', CLT: 'America/New_York',
+};
+function getTimezoneForAirport(iata) {
+  const code = String(iata || '').trim().toUpperCase();
+  return AIRPORT_TIMEZONES[code] || 'America/New_York';
+}
+
 // Format airport for dropdown display
 function formatAirport(id) {
   const info = BTS_AIRPORT_LOOKUP[id];
@@ -397,22 +577,23 @@ function getAirportNameForPrompt(id) {
 // DOM elements
 let metadata = null;
 const elements = {};
+// Store last flight origin/dest for Mistral (same data as delay prediction)
+let lastOriginBtsId = null;
+let lastDestinationBtsId = null;
+let lastOriginName = null;
+let lastDestinationName = null;
 
 function initElements() {
-  elements.airlineSelect = document.getElementById('airline');
-  elements.originSelect = document.getElementById('origin');
-  elements.destinationSelect = document.getElementById('destination');
-  elements.originSearch = document.getElementById('origin-search');
-  elements.destinationSearch = document.getElementById('destination-search');
-  elements.departureDate = document.getElementById('departure-date');
-  elements.departureHour = document.getElementById('departure-hour');
-  elements.hourDisplay = document.getElementById('hour-display');
-  elements.form = document.getElementById('flight-form');
-  elements.submitBtn = document.getElementById('submit-btn');
+  elements.flightNumberInput = document.getElementById('flight-number');
+  elements.flightNumberStep = document.getElementById('flight-number-step');
+  elements.mainContent = document.getElementById('main-content');
+  elements.findFlightBtn = document.getElementById('find-flight-btn');
+  elements.flightDataSection = document.getElementById('flight-data-section');
+  elements.flightDataContent = document.getElementById('flight-data-content');
+  elements.flightDataError = document.getElementById('flight-data-error');
   elements.loading = document.getElementById('loading');
   elements.resultCard = document.getElementById('result-card');
   elements.resultProbability = document.getElementById('result-probability');
-  elements.riskBadge = document.getElementById('risk-badge');
   elements.resultMessage = document.getElementById('result-message');
   elements.formError = document.getElementById('form-error');
   elements.mistralBtn = document.getElementById('mistral-btn');
@@ -421,179 +602,243 @@ function initElements() {
   elements.mistralTimestamp = document.getElementById('mistral-timestamp');
   elements.mistralContent = document.getElementById('mistral-content');
   elements.mistralError = document.getElementById('mistral-error');
+  elements.suggestionBtn = document.getElementById('suggestion-btn');
+  elements.suggestionText = document.getElementById('suggestion-text');
+  elements.suggestionLoading = document.getElementById('suggestion-loading');
+  elements.suggestionResult = document.getElementById('suggestion-result');
+  elements.suggestionTimestamp = document.getElementById('suggestion-timestamp');
+  elements.suggestionContent = document.getElementById('suggestion-content');
+  elements.suggestionError = document.getElementById('suggestion-error');
+  elements.weatherSection = document.getElementById('weather-section');
+  elements.weatherOriginLabel = document.getElementById('weather-origin-label');
+  elements.weatherOriginContent = document.getElementById('weather-origin-content');
+  elements.weatherOriginLoading = document.getElementById('weather-origin-loading');
+  elements.weatherOriginError = document.getElementById('weather-origin-error');
+  elements.weatherDestLabel = document.getElementById('weather-destination-label');
+  elements.weatherDestContent = document.getElementById('weather-destination-content');
+  elements.weatherDestLoading = document.getElementById('weather-destination-loading');
+  elements.weatherDestError = document.getElementById('weather-destination-error');
+  elements.flightNumberDisplay = document.getElementById('flight-number-display');
+  elements.countdownValue = document.getElementById('countdown-value');
+  elements.aircraftType = document.getElementById('aircraft-type');
+  elements.aircraftImage = document.getElementById('aircraft-image');
+  elements.airlineName = document.getElementById('airline-name');
+  elements.airlineDetails = document.getElementById('airline-details');
+  elements.airlineLogo = document.getElementById('airline-logo');
+  elements.airlineLogoCard = document.getElementById('airline-logo-card');
+  elements.depTimeDisplay = document.getElementById('dep-time-display');
+  elements.arrTimeDisplay = document.getElementById('arr-time-display');
+  elements.mapOriginLabel = document.getElementById('map-origin-label');
+  elements.mapDestLabel = document.getElementById('map-dest-label');
+  elements.clockOriginLabel = document.getElementById('clock-origin-label');
+  elements.clockOriginTime = document.getElementById('clock-origin-time');
+  elements.clockDestLabel = document.getElementById('clock-dest-label');
+  elements.clockDestTime = document.getElementById('clock-dest-time');
+  elements.heroVideo = document.querySelector('.hero-bg-video');
 }
 
-// Fetch metadata and populate dropdowns
+// Fetch metadata (needed for IATA -> BTS ID mapping)
 async function loadMetadata() {
   try {
     const res = await fetch(`${API_BASE}/metadata`);
     if (!res.ok) throw new Error('Failed to load metadata');
     metadata = await res.json();
-    populateDropdowns();
-    setMinDate();
   } catch (err) {
-    showFormError('Could not load airlines and airports. Please refresh the page.');
-    elements.airlineSelect.innerHTML = '<option value="">Error loading</option>';
-    elements.originSelect.innerHTML = '<option value="">Error loading</option>';
-    elements.destinationSelect.innerHTML = '<option value="">Error loading</option>';
+    showFormError('Could not load metadata. Please refresh the page.');
   }
 }
 
-function populateDropdowns() {
-  const airlines = metadata.airlines || [];
-  const origins = metadata.origins || [];
-  const destinations = metadata.destinations || [];
-
-  elements.airlineSelect.innerHTML = '<option value="">Select airline</option>' +
-    airlines.map((code) => {
-      const displayName = formatAirline(code);
-      return `<option value="${code}">${displayName}</option>`;
-    }).join('');
-
-  const originOptions = '<option value="">Select origin</option>' +
-    origins.map((id) => `<option value="${id}">${formatAirport(id)}</option>`).join('');
-  elements.originSelect.innerHTML = originOptions;
-
-  const destOptions = '<option value="">Select destination</option>' +
-    destinations.map((id) => `<option value="${id}">${formatAirport(id)}</option>`).join('');
-  elements.destinationSelect.innerHTML = destOptions;
+// Map IATA code to BTS ID using metadata
+function getBtsIdFromIata(iata) {
+  if (!metadata?.origins || !iata) return null;
+  const code = String(iata).trim().toUpperCase();
+  for (const id of metadata.origins) {
+    const info = BTS_AIRPORT_LOOKUP[id];
+    if (info?.iata === code) return id;
+  }
+  return null;
 }
 
-function setMinDate() {
-  const today = new Date().toISOString().slice(0, 10);
-  elements.departureDate.setAttribute('min', today);
-}
-
-// Searchable airport dropdowns - input and dropdown are connected
-function setupSearchable(selectId, searchId) {
-  const select = document.getElementById(selectId);
-  const search = document.getElementById(searchId);
-  const dropdown = document.getElementById(`${selectId}-dropdown`);
-  const container = search.closest('.searchable-select');
-
-  if (!select || !search || !dropdown || !container) return;
-
-  function filterAndShowOptions() {
-    const query = search.value.trim().toLowerCase();
-    const options = Array.from(select.options).filter((opt) => opt.value !== '');
-    const filtered = query
-      ? options.filter((opt) => opt.textContent.toLowerCase().includes(query))
-      : options;
-
-    dropdown.innerHTML = '';
-    if (filtered.length === 0) {
-      dropdown.innerHTML = '<div class="airport-dropdown-empty">No airports match</div>';
-    } else {
-      filtered.forEach((opt) => {
-        const div = document.createElement('div');
-        div.className = 'airport-dropdown-option';
-        div.textContent = opt.textContent;
-        div.dataset.value = opt.value;
-        div.dataset.label = opt.textContent;
-        div.setAttribute('role', 'option');
-        div.tabIndex = 0;
-        // Use mousedown so selection happens before blur closes dropdown
-        div.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          select.value = opt.value;
-          search.value = opt.textContent;
-          dropdown.classList.remove('is-open');
-          search.blur();
-        });
-        dropdown.appendChild(div);
-      });
+// Map IATA code to BTS ID for DESTINATION using metadata.destinations (backend expects destination from DEST encoder)
+function getDestBtsFromIata(iata) {
+  if (!iata) return null;
+  const code = String(iata).trim().toUpperCase();
+  // 1) Match from destinations list (same logic as origin from origins list)
+  if (metadata?.destinations?.length) {
+    for (const id of metadata.destinations) {
+      const info = BTS_AIRPORT_LOOKUP[id];
+      if (info?.iata === code) return id;
     }
-    dropdown.classList.add('is-open');
+  }
+  // 2) Fallback: resolve BTS ID from IATA (via origins list), then use only if it's in destinations
+  const btsIdFromOriginList = getBtsIdFromIata(iata);
+  if (btsIdFromOriginList != null && metadata?.destinations?.length) {
+    const destSet = new Set(metadata.destinations.map((d) => String(d)));
+    if (destSet.has(String(btsIdFromOriginList))) return btsIdFromOriginList;
+  }
+  // 3) Reverse lookup: find BTS id for this IATA in BTS_AIRPORT_LOOKUP, then check if in destinations
+  for (const [id, info] of Object.entries(BTS_AIRPORT_LOOKUP)) {
+    if (info?.iata === code && metadata?.destinations?.length) {
+      const destSet = new Set(metadata.destinations.map((d) => String(d)));
+      if (destSet.has(String(id))) return id;
+    }
+  }
+  return null;
+}
+
+// Extract prediction params from flight data
+function extractPredictionParams(flightData, parsed) {
+  // Handle array (default/API), double-wrapped array, or single object
+  let item = Array.isArray(flightData) ? flightData[0] : flightData;
+  if (Array.isArray(item)) item = item[0];
+  const dep = item?.departure || {};
+  const arr = item?.arrival || {};
+  const originIata = (dep.airportCode || dep.airport || '').toString().trim();
+  const destIata = (arr.airportCode || arr.airport || '').toString().trim();
+  const originBts = getBtsIdFromIata(originIata);
+  const destBts = getDestBtsFromIata(destIata);
+
+  // Parse date/time from departure
+  const today = new Date();
+  let dateStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  let hour = 12;
+  const dtStr = dep.departureDateTime || dep.scheduledTime;
+  if (dtStr) {
+    const d = new Date(dtStr);
+    if (!isNaN(d.getTime())) {
+      dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      hour = d.getHours();
+    }
   }
 
-  function closeDropdown() {
-    dropdown.classList.remove('is-open');
-  }
-
-  search.addEventListener('focus', filterAndShowOptions);
-  search.addEventListener('input', () => {
-    filterAndShowOptions();
-    const selected = select.options[select.selectedIndex];
-    if (!search.value.trim() || (selected && search.value !== selected.textContent)) {
-      select.value = '';
-    }
-  });
-  search.addEventListener('blur', () => {
-    setTimeout(closeDropdown, 150);
-  });
-
-  // Close when clicking outside (more reliable than blur)
-  document.addEventListener('click', function handleOutsideClick(e) {
-    if (!dropdown.classList.contains('is-open')) return;
-    if (container.contains(e.target)) return;
-    closeDropdown();
-  });
-
-  select.addEventListener('change', () => {
-    const selected = select.options[select.selectedIndex];
-    if (selected && selected.value) {
-      search.value = selected.textContent;
-    }
-  });
+  const origin = originBts || originIata;
+  const destination = destBts || destIata;
+  // Human-readable names from flight data for Mistral (same as displayed)
+  const originName = (dep.airportCode || dep.airport || '') + (dep.airportCity ? ` (${dep.airportCity})` : '');
+  const destName = (arr.airportCode || arr.airport || '') + (arr.airportCity ? ` (${arr.airportCity})` : '');
+  return {
+    airline: parsed.airline,
+    origin,
+    destination,
+    departureDate: dateStr,
+    departureHour: hour,
+    originBts: originBts || originIata,
+    destBts: destBts || destIata,
+    originIata,
+    destIata,
+    originName: originName.trim() || (originBts ? getAirportNameForPrompt(originBts) : originIata),
+    destName: destName.trim() || (destBts ? getAirportNameForPrompt(destBts) : destIata),
+  };
 }
 
-// Form submit - predict
-function setupFormSubmit() {
-  elements.form.addEventListener('submit', async (e) => {
-  e.preventDefault();
+// Update dashboard cards from flight data (countdown, aircraft, airline, map, clocks)
+function updateDashboardFromFlight(flightData, parsed, params) {
+  const item = Array.isArray(flightData) ? flightData[0] : flightData;
+  const dep = item?.departure || {};
+  const arr = item?.arrival || {};
+
+  if (elements.flightNumberDisplay) {
+    elements.flightNumberDisplay.textContent = (parsed?.airline || '') + (parsed?.num || '') || '—';
+  }
+
+  const depDate = new Date(params.departureDate + 'T' + String(params.departureHour).padStart(2, '0') + ':00:00');
+  const now = Date.now();
+  const hrs = Math.max(0, Math.floor((depDate.getTime() - now) / (1000 * 60 * 60)));
+  if (elements.countdownValue) {
+    elements.countdownValue.textContent = hrs + 'hrs';
+  }
+
+  const aircraft = item?.aircraft || item?.aircraftType || item?.equipment || item?.aircraft_type || item?.equipment_code || 'Airbus A380';
+  if (elements.aircraftType) elements.aircraftType.textContent = aircraft || 'Airbus A380';
+  const aircraftImagePath = getAircraftImagePath(aircraft);
+  if (elements.aircraftImage) {
+    elements.aircraftImage.src = aircraftImagePath;
+    elements.aircraftImage.alt = aircraft ? `${aircraft} image` : '';
+  }
+
+  const airlineName = item?.airline || formatAirline(parsed?.airline) || '—';
+  if (elements.airlineName) elements.airlineName.textContent = airlineName;
+  const logoPath = getAirlineLogoPath(parsed?.airline);
+  if (elements.airlineLogo) {
+    elements.airlineLogo.src = logoPath;
+    elements.airlineLogo.alt = airlineName;
+  }
+  if (elements.airlineLogoCard) {
+    elements.airlineLogoCard.src = logoPath;
+    elements.airlineLogoCard.alt = airlineName;
+  }
+  if (elements.airlineDetails) {
+    elements.airlineDetails.innerHTML = renderAirlineDetails(parsed?.airline);
+  }
+
+  const depTimeStr = formatTime24(dep.scheduledTime || dep.departureDateTime);
+  const arrTimeStr = formatTime24(arr.scheduledTime || arr.estimatedTime || arr.arrivalDateTime || arr.arrival_time || arr.time);
+  if (elements.depTimeDisplay) elements.depTimeDisplay.textContent = depTimeStr || '—';
+  if (elements.arrTimeDisplay) elements.arrTimeDisplay.textContent = arrTimeStr || '—';
+
+  const originLabel = params.originName || (dep.airportCode || dep.airport || '') + ' ' + (dep.airportCity || '');
+  const destLabel = params.destName || (arr.airportCode || arr.airport || '') + ' ' + (arr.airportCity || '');
+  if (elements.mapOriginLabel) elements.mapOriginLabel.textContent = (dep.airportCode || dep.airport || '') + ' ' + (dep.airportCity || 'Origin');
+  if (elements.mapDestLabel) elements.mapDestLabel.textContent = (arr.airportCode || arr.airport || '') + ' ' + (arr.airportCity || 'Destination');
+
+  function updateClocks() {
+    const tzOrigin = getTimezoneForAirport(params.originIata);
+    const tzDest = getTimezoneForAirport(params.destIata);
+    const cityOrigin = dep.airportCity || params.originIata || 'Origin';
+    const cityDest = arr.airportCity || params.destIata || 'Destination';
+    if (elements.clockOriginLabel) elements.clockOriginLabel.textContent = cityOrigin;
+    if (elements.clockDestLabel) elements.clockDestLabel.textContent = cityDest;
+    try {
+      if (elements.clockOriginTime) {
+        elements.clockOriginTime.textContent = new Date().toLocaleTimeString('en-US', { timeZone: tzOrigin, hour: 'numeric', minute: '2-digit' });
+      }
+      if (elements.clockDestTime) {
+        elements.clockDestTime.textContent = new Date().toLocaleTimeString('en-US', { timeZone: tzDest, hour: 'numeric', minute: '2-digit' });
+      }
+    } catch (_) {
+      if (elements.clockOriginTime) elements.clockOriginTime.textContent = '—';
+      if (elements.clockDestTime) elements.clockDestTime.textContent = '—';
+    }
+  }
+  updateClocks();
+  setInterval(updateClocks, 60000);
+}
+
+// Run delay prediction
+async function runPrediction(params) {
   hideFormError();
   hideResult();
-
-  const airline = elements.airlineSelect?.value;
-  const origin = elements.originSelect?.value;
-  const destination = elements.destinationSelect?.value;
-  const departureDate = elements.departureDate?.value;
-  const departureHour = parseInt(elements.departureHour?.value ?? 12, 10);
-
-  if (!airline || !origin || !destination || !departureDate) {
-    showFormError('Please fill in all fields.');
-    return;
-  }
-
   setLoading(true);
   try {
     const res = await fetch(`${API_BASE}/predict`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        airline,
-        origin,
-        destination,
-        departure_date: departureDate,
-        departure_hour: departureHour,
+        airline: params.airline,
+        origin: params.origin,
+        destination: params.destination,
+        departure_date: params.departureDate,
+        departure_hour: params.departureHour,
         distance: 500,
       }),
     });
-
     const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.detail || data.message || 'Prediction failed');
-    }
-
+    if (!res.ok) throw new Error(data.detail || data.message || 'Prediction failed');
     showResult(data);
   } catch (err) {
-    showFormError(err.message || 'Something went wrong. Please try again.');
+    showFormError(err.message || 'Could not predict delay. Please try again.');
   } finally {
     setLoading(false);
   }
-});
 }
 
 function setLoading(on) {
   elements.loading?.classList.toggle('hidden', !on);
-  elements.submitBtn.disabled = on;
 }
 
 function showResult(data) {
   const prob = (data.delay_probability * 100).toFixed(1);
   elements.resultProbability.textContent = `${prob}%`;
-  elements.riskBadge.textContent = data.risk_level;
-  elements.riskBadge.className = 'risk-badge ' + data.risk_level.toLowerCase();
   elements.resultMessage.textContent = data.is_delayed
     ? 'This flight is likely to be delayed.'
     : 'This flight looks on time.';
@@ -609,6 +854,122 @@ function showFormError(msg) {
   elements.formError?.classList.remove('hidden');
 }
 
+// Fetch weather from Open-Meteo for a location
+async function fetchWeather(lat, lon) {
+  const url = new URL('https://api.open-meteo.com/v1/forecast');
+  url.searchParams.set('latitude', lat);
+  url.searchParams.set('longitude', lon);
+  url.searchParams.set('current', 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m');
+  url.searchParams.set('forecast_days', '3');
+  url.searchParams.set('timezone', 'auto');
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error('Weather fetch failed');
+  return res.json();
+}
+
+// Render weather data to HTML
+function renderWeather(data) {
+  const cur = data?.current;
+  if (!cur) return 'No data';
+  const temp = cur.temperature_2m;
+  const unit = data.current_units?.temperature_2m ?? '°C';
+  const wmo = cur.weather_code;
+  const desc = getWeatherDesc(wmo);
+  const humidity = cur.relative_humidity_2m ?? '';
+  const wind = cur.wind_speed_10m;
+  const windUnit = data.current_units?.wind_speed_10m ?? 'km/h';
+  const parts = [`<div class="temp">${temp}${unit}</div>`, `<div class="desc">${desc}</div>`];
+  if (humidity !== '') parts.push(`<div class="meta">Humidity: ${humidity}%</div>`);
+  if (wind != null) parts.push(`<div class="meta">Wind: ${wind} ${windUnit}</div>`);
+  return parts.join('');
+}
+
+function getWeatherDesc(wmo) {
+  const map = {
+    0: 'Clear',
+    1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Foggy', 48: 'Depositing rime fog',
+    51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
+    61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
+    71: 'Slight snow', 73: 'Moderate snow', 75: 'Heavy snow',
+    80: 'Slight rain showers', 81: 'Rain showers', 82: 'Violent rain showers',
+    95: 'Thunderstorm', 96: 'Thunderstorm with slight hail', 99: 'Thunderstorm with heavy hail',
+  };
+  return map[wmo] ?? 'Unknown';
+}
+
+// Load and display weather for origin and destination
+async function loadWeather(params) {
+  const { originIata, destIata, originName, destName } = params;
+  if (!elements.weatherSection) return;
+
+  elements.weatherSection.classList.remove('hidden');
+  elements.weatherOriginLabel.textContent = originName || 'Origin';
+  elements.weatherDestLabel.textContent = destName || 'Destination';
+
+  const originIataForCoords = originIata || (params.originBts && BTS_AIRPORT_LOOKUP[params.originBts] && BTS_AIRPORT_LOOKUP[params.originBts].iata);
+  const destIataForCoords = destIata || (params.destBts && BTS_AIRPORT_LOOKUP[params.destBts] && BTS_AIRPORT_LOOKUP[params.destBts].iata);
+  const originCoords = getCoordsForAirport(originIataForCoords);
+  const destCoords = getCoordsForAirport(destIataForCoords);
+
+  const showOriginLoading = () => {
+    elements.weatherOriginContent.innerHTML = '';
+    elements.weatherOriginLoading.classList.remove('hidden');
+    elements.weatherOriginError.classList.add('hidden');
+  };
+  const showDestLoading = () => {
+    elements.weatherDestContent.innerHTML = '';
+    elements.weatherDestLoading.classList.remove('hidden');
+    elements.weatherDestError.classList.add('hidden');
+  };
+  const showOriginResult = (html) => {
+    elements.weatherOriginLoading.classList.add('hidden');
+    elements.weatherOriginError.classList.add('hidden');
+    elements.weatherOriginContent.innerHTML = html;
+  };
+  const showDestResult = (html) => {
+    elements.weatherDestLoading.classList.add('hidden');
+    elements.weatherDestError.classList.add('hidden');
+    elements.weatherDestContent.innerHTML = html;
+  };
+  const showOriginErr = (msg) => {
+    elements.weatherOriginLoading.classList.add('hidden');
+    elements.weatherOriginContent.innerHTML = '';
+    elements.weatherOriginError.textContent = msg;
+    elements.weatherOriginError.classList.remove('hidden');
+  };
+  const showDestErr = (msg) => {
+    elements.weatherDestLoading.classList.add('hidden');
+    elements.weatherDestContent.innerHTML = '';
+    elements.weatherDestError.textContent = msg;
+    elements.weatherDestError.classList.remove('hidden');
+  };
+
+  if (originCoords) {
+    showOriginLoading();
+    try {
+      const data = await fetchWeather(originCoords.lat, originCoords.lon);
+      showOriginResult(renderWeather(data));
+    } catch (err) {
+      showOriginErr(err.message || 'Could not load weather');
+    }
+  } else {
+    showOriginErr(`No coordinates for ${originIata || 'origin'}`);
+  }
+
+  if (destCoords) {
+    showDestLoading();
+    try {
+      const data = await fetchWeather(destCoords.lat, destCoords.lon);
+      showDestResult(renderWeather(data));
+    } catch (err) {
+      showDestErr(err.message || 'Could not load weather');
+    }
+  } else {
+    showDestErr(`No coordinates for ${destIata || 'destination'}`);
+  }
+}
+
 function hideFormError() {
   elements.formError?.classList.add('hidden');
 }
@@ -616,23 +977,21 @@ function hideFormError() {
 // Mistral - Check for Disruptions
 function setupMistralButton() {
   elements.mistralBtn.addEventListener('click', async () => {
-  const origin = elements.originSelect?.value;
-  const destination = elements.destinationSelect?.value;
-
-  if (!origin || !destination) {
-    elements.mistralError.textContent = 'Please select origin and destination first.';
+  if (!lastOriginName || !lastDestinationName) {
+    elements.mistralError.textContent = 'Find a flight first to check for disruptions.';
     elements.mistralError?.classList.remove('hidden');
     return;
   }
 
   if (MISTRAL_API_KEY === 'YOUR_KEY_HERE') {
-    elements.mistralError.textContent = 'Please set your Mistral API key in script.js.';
+    elements.mistralError.textContent = 'Please set your API key in script.js.';
     elements.mistralError?.classList.remove('hidden');
     return;
   }
 
-  const originName = getAirportNameForPrompt(origin);
-  const destinationName = getAirportNameForPrompt(destination);
+  // Use same origin/destination as delay prediction (from flight data)
+  const originName = lastOriginName;
+  const destinationName = lastDestinationName;
   const prompt = `Are there any current flight disruptions, strikes, airspace closures or extreme weather affecting flights from ${originName} to ${destinationName} today? Answer in 2-3 sentences.`;
 
   elements.mistralResult?.classList.add('hidden');
@@ -696,7 +1055,7 @@ function setupMistralButton() {
         break;
       }
     }
-    if (!content) throw new Error('No response from Mistral.');
+    if (!content) throw new Error('No response from service.');
 
     elements.mistralContent.textContent = content.trim();
     elements.mistralTimestamp.textContent = new Date().toLocaleString();
@@ -710,15 +1069,332 @@ function setupMistralButton() {
 });
 }
 
+// Mistral - Airport suggestions (tips for origin/destination airports, not disruptions)
+async function runMistralSuggestion(originName, destinationName) {
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${MISTRAL_API_KEY}`,
+  };
+
+  const prompt = `A traveler is flying from ${originName} to ${destinationName}. Give 2-3 practical suggestions or tips specifically about these airports (origin and destination). Focus on: best times to arrive, terminal tips, security wait times, parking, lounges, or other airport-specific advice. Do NOT mention flight disruptions, strikes, or weather. Answer in 2-4 short sentences.`;
+
+  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'mistral-small-latest',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 256,
+      temperature: 0.3,
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const errMsg = data?.message || data?.error?.message || data?.choices?.[0]?.message?.content || `API error ${res.status}`;
+    throw new Error(errMsg);
+  }
+
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content || typeof content !== 'string') throw new Error('No response from service.');
+  return content.trim();
+}
+
+function setupSuggestionButton() {
+  const btn = elements.suggestionBtn;
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    if (!lastOriginName || !lastDestinationName) {
+      if (elements.suggestionError) {
+        elements.suggestionError.textContent = 'Find a flight first to get suggestions.';
+        elements.suggestionError.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (MISTRAL_API_KEY === 'YOUR_KEY_HERE') {
+      if (elements.suggestionError) {
+        elements.suggestionError.textContent = 'Please set your API key in script.js.';
+        elements.suggestionError.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (elements.suggestionText) elements.suggestionText.classList.add('hidden');
+    if (elements.suggestionResult) elements.suggestionResult.classList.add('hidden');
+    if (elements.suggestionError) {
+      elements.suggestionError.classList.add('hidden');
+      elements.suggestionError.textContent = '';
+    }
+    if (elements.suggestionLoading) elements.suggestionLoading.classList.remove('hidden');
+
+    try {
+      const content = await runMistralSuggestion(lastOriginName, lastDestinationName);
+      if (elements.suggestionContent) elements.suggestionContent.textContent = content;
+      if (elements.suggestionTimestamp) elements.suggestionTimestamp.textContent = new Date().toLocaleString();
+      if (elements.suggestionResult) elements.suggestionResult.classList.remove('hidden');
+      if (elements.suggestionText) elements.suggestionText.classList.add('hidden');
+    } catch (err) {
+      if (elements.suggestionError) {
+        elements.suggestionError.textContent = err.message || 'Failed to load suggestions.';
+        elements.suggestionError.classList.remove('hidden');
+      }
+      if (elements.suggestionText) elements.suggestionText.classList.remove('hidden');
+    } finally {
+      if (elements.suggestionLoading) elements.suggestionLoading.classList.add('hidden');
+    }
+  });
+}
+
+// Parse flight number (e.g. "AA123" -> { airline: "AA", num: "123" })
+function parseFlightNumber(input) {
+  const s = String(input || '').trim().toUpperCase();
+  const match = s.match(/^([A-Z0-9]{2})(\d+)$/);
+  if (match) return { airline: match[1], num: match[2] };
+  return null;
+}
+
+// Fetch flight data from FlightAPI
+async function fetchFlightData(airlineCode, flightNum, dateStr) {
+  const url = `https://api.flightapi.io/airline/${FLIGHTAPI_KEY}?num=${encodeURIComponent(flightNum)}&name=${encodeURIComponent(airlineCode)}&date=${dateStr}`;
+  const res = await fetch(url);
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    if (res.status === 404 || res.status === 410) {
+      throw new Error('No flight found for this date. Try today or another date.');
+    }
+    throw new Error(data?.message || `API error ${res.status}`);
+  }
+  // API returns array: [ { departure }, { arrival } ] — merge into single flight item(s)
+  const raw = Array.isArray(data) ? data : data?.flights ?? data?.data ?? (data ? [data] : []);
+  const rawList = Array.isArray(raw) ? raw : [raw];
+  let out = [];
+  if (rawList.length >= 2 && rawList[0].departure && !rawList[0].arrival && rawList[1].arrival) {
+    out = [{ ...rawList[0], departure: rawList[0].departure, arrival: rawList[1].arrival }];
+  } else {
+    for (let i = 0; i < rawList.length; i++) {
+      const curr = rawList[i] || {};
+      const next = rawList[i + 1];
+      const dep = curr.departure || curr;
+      const arr = curr.arrival || (next && (next.arrival || next.departure)) || {};
+      out.push({ ...curr, departure: dep, arrival: arr });
+    }
+  }
+  if (out.length === 0 && rawList.length > 0) {
+    out.push({ departure: rawList[0].departure || rawList[0], arrival: rawList[1]?.arrival || rawList[1] || {} });
+  }
+  return out;
+}
+
+// Default mock flight data when API key is not set
+function getDefaultFlightData(parsed) {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const time1 = today.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const time2 = new Date(today.getTime() + 180 * 60000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return [
+    {
+      airline: formatAirline(parsed?.airline || 'AA'),
+      aircraft: 'Boeing 737-800',
+      departure: {
+        airportCode: 'JFK',
+        airport: 'JFK',
+        airportCity: 'New York',
+        scheduledTime: `${time1}, ${dateStr}`,
+        terminal: '4',
+        gate: 'B12',
+      },
+      arrival: {
+        airportCode: 'LAX',
+        airport: 'LAX',
+        airportCity: 'Los Angeles',
+        scheduledTime: `${time2}, ${dateStr}`,
+        terminal: '5',
+        gate: '52A',
+      },
+    },
+  ];
+}
+
+// Ticket layout: origin | dashed line + black pill (plane + duration) + date below | destination; bottom: Terminal, Gate (no seat)
+function renderFlightData(data) {
+  if (!Array.isArray(data) || data.length === 0) {
+    return '<p class="flight-data-empty">No flight data returned.</p>';
+  }
+  const item = data[0];
+  const dep = item.departure || {};
+  const arr = item.arrival || {};
+  const depTime = dep.scheduledTime || dep.departureDateTime || '';
+  const arrTime = arr.scheduledTime || arr.estimatedTime || arr.arrivalDateTime || '';
+  let durationText = '';
+  if (depTime && arrTime) {
+    try {
+      const d1 = new Date(depTime);
+      const d2 = new Date(arrTime);
+      if (!isNaN(d1.getTime()) && !isNaN(d2.getTime())) {
+        const min = Math.round((d2 - d1) / 60000);
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        durationText = (h ? h + 'h ' : '') + (m ? m + 'm' : '');
+      }
+    } catch (_) {}
+  }
+  const dateLong = formatDateLong(depTime);
+  return `
+    <div class="flight-data-card flight-data-card-ticket">
+      <div class="flight-data-row-route flight-data-row-route-vertical">
+        <div class="flight-data-col-origin">
+          <span class="flight-data-airport">${dep.airportCode || dep.airport || ''}</span>
+          <span class="flight-data-city"><span class="flight-data-pin" aria-hidden="true"></span>${dep.airportCity || ''}</span>
+        </div>
+        <div class="flight-data-col-center">
+          <div class="flight-data-dashed-line">
+            <span class="flight-data-duration">${durationText}</span>
+          </div>
+          <span class="flight-data-date-below">${dateLong}</span>
+        </div>
+        <div class="flight-data-col-destination">
+          <span class="flight-data-airport">${arr.airportCode || arr.airport || ''}</span>
+          <span class="flight-data-city"><span class="flight-data-pin" aria-hidden="true"></span>${arr.airportCity || ''}</span>
+        </div>
+      </div>
+      <div class="flight-data-row-meta">
+        <span class="flight-data-meta-item">Terminal: ${dep.terminal || ''}</span>
+        <span class="flight-data-meta-item">Gate: ${dep.gate || ''}</span>
+      </div>
+    </div>
+  `;
+}
+
+function formatDateLong(isoOrTime) {
+  if (!isoOrTime) return '';
+  const d = new Date(isoOrTime);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function formatDateForDisplay(isoOrTime) {
+  if (!isoOrTime) return '';
+  const d = new Date(isoOrTime);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }).toUpperCase();
+}
+
+function formatTime24(isoOrTime) {
+  if (!isoOrTime) return '';
+  const d = new Date(isoOrTime);
+  if (isNaN(d.getTime())) return String(isoOrTime).replace(/,/g, '').trim().slice(0, 8);
+  const s = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return s.replace(/,/g, '').trim();
+}
+
+function formatTimeForDisplay(isoOrTime) {
+  if (!isoOrTime) return '';
+  const d = new Date(isoOrTime);
+  if (isNaN(d.getTime())) return String(isoOrTime).replace(/,/g, '').trim().slice(0, 12);
+  const s = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  return s.replace(/,/g, '').trim();
+}
+
+// Find Flight button - fetch flight data, show main form and flight data
+function setupFindFlightButton() {
+  elements.findFlightBtn.addEventListener('click', async () => {
+    const input = elements.flightNumberInput.value.trim();
+    if (!input) {
+      alert('Please enter a flight number (e.g. AA123, UA456)');
+      return;
+    }
+
+    const parsed = parseFlightNumber(input);
+    if (!parsed) {
+      alert('Please use format: AirlineCode + Number (e.g. AA123, DL456)');
+      return;
+    }
+
+    elements.flightNumberStep.classList.add('hidden');
+    elements.mainContent.classList.remove('hidden');
+    elements.flightDataSection.classList.remove('hidden');
+
+    // Start hero video (after user gesture so autoplay is allowed)
+    const heroVideo = elements.heroVideo;
+    if (heroVideo) {
+      heroVideo.play().catch(() => {
+        const playOnInteraction = () => {
+          heroVideo.play().catch(() => {});
+          document.removeEventListener('click', playOnInteraction);
+          document.removeEventListener('touchstart', playOnInteraction);
+        };
+        document.addEventListener('click', playOnInteraction, { once: true });
+        document.addEventListener('touchstart', playOnInteraction, { once: true });
+      });
+    }
+
+    // Ensure metadata loaded for IATA->BTS mapping
+    if (!metadata) await loadMetadata();
+
+    if (FLIGHTAPI_KEY === 'YOUR_FLIGHTAPI_KEY_HERE') {
+      const defaultData = getDefaultFlightData(parsed);
+      elements.flightDataContent.innerHTML = renderFlightData(defaultData) +
+        '<p class="flight-data-empty" style="margin-top: 1rem; font-size: 0.85rem;">Demo data. <a href="https://docs.flightapi.io" target="_blank" rel="noopener">Add your FlightAPI key</a> for real lookups.</p>';
+      elements.flightDataError.classList.add('hidden');
+      const params = extractPredictionParams(defaultData, parsed);
+      lastOriginBtsId = params.originBts;
+      lastDestinationBtsId = params.destBts;
+      lastOriginName = params.originName;
+      lastDestinationName = params.destName;
+      updateDashboardFromFlight(defaultData, parsed, params);
+      if (params.originBts && params.destBts) {
+        await runPrediction(params);
+      } else {
+        hideResult();
+        showFormError('Delay prediction is not available for this route.');
+      }
+      loadWeather(params);
+      return;
+    }
+
+    elements.findFlightBtn.disabled = true;
+    elements.findFlightBtn.textContent = 'Finding...';
+    elements.flightDataError.classList.add('hidden');
+    elements.flightDataContent.innerHTML = '<div class="loading"><div class="spinner"></div><p>Looking up flight...</p></div>';
+
+    const today = new Date();
+    const dateStr = today.getFullYear() + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+
+    try {
+      const data = await fetchFlightData(parsed.airline, parsed.num, dateStr);
+      elements.flightDataContent.innerHTML = renderFlightData(data);
+      const params = extractPredictionParams(data, parsed);
+      lastOriginBtsId = params.originBts;
+      lastDestinationBtsId = params.destBts;
+      lastOriginName = params.originName;
+      lastDestinationName = params.destName;
+      updateDashboardFromFlight(data, parsed, params);
+      if (params.originBts && params.destBts) {
+        await runPrediction(params);
+      } else {
+        hideResult();
+        showFormError('Delay prediction is not available for this route. Origin or destination is not in the supported set.');
+      }
+      loadWeather(params);
+    } catch (err) {
+      const msg = err.message || 'Could not find flight. Try a different date or flight number.';
+      elements.flightDataError.textContent = msg + (err.message?.includes('CORS') ? ' Try proxying through your backend.' : '');
+      elements.flightDataError.classList.remove('hidden');
+      elements.flightDataContent.innerHTML = '<p class="flight-data-empty">No flight data available.</p>';
+    } finally {
+      elements.findFlightBtn.disabled = false;
+      elements.findFlightBtn.textContent = 'Find Flight';
+    }
+  });
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
   initElements();
-  elements.departureHour.addEventListener('input', (e) => {
-    elements.hourDisplay.textContent = e.target.value;
-  });
-  setupFormSubmit();
-  setupMistralButton();
   loadMetadata();
-  setupSearchable('origin', 'origin-search');
-  setupSearchable('destination', 'destination-search');
+  setupFindFlightButton();
+  setupMistralButton();
+  setupSuggestionButton();
 });

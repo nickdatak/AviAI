@@ -3,103 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flight Delay Predictor</title>
+  <title>AviAI – Flight Delay Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Flight Delay Predictor</h1>
-      <p class="tagline">Check delay probability and real-time disruptions</p>
-    </header>
+  <div class="app">
+    <!-- Initial step: enter flight number -->
+    <section id="flight-number-step" class="flight-number-step">
+      <header class="landing-header">
+        <img src="assets/AVIAI-logo.png" alt="AviAI" class="landing-logo">
+      </header>
+      <div class="flight-number-panel">
+        <label for="flight-number">Enter your flight number</label>
+        <div class="flight-number-row">
+          <input type="text" id="flight-number" placeholder="e.g. AA123, UA456" autocomplete="off">
+          <button type="button" class="btn btn-primary" id="find-flight-btn">Find Flight</button>
+        </div>
+      </div>
+    </section>
 
-    <main class="content-grid">
-      <!-- Left: Form + Prediction -->
-      <section class="panel left-panel">
-        <form id="flight-form" class="flight-form">
-          <div class="form-group">
-            <label for="airline">Airline</label>
-            <select id="airline" name="airline" required>
-              <option value="">Loading...</option>
-            </select>
+    <!-- Dashboard (shown after Find Flight) -->
+    <main id="main-content" class="dashboard hidden">
+      <div class="dashboard-grid">
+        <!-- 1. Flight Details -->
+        <section id="flight-data-section" class="card card-flight-details">
+          <div class="flight-details-header">
+            <span id="flight-number-display" class="flight-number-big">—</span>
+            <img id="airline-logo" class="airline-logo" src="assets/airplane.png" alt="">
           </div>
+          <div id="flight-data-content" class="flight-data-content"></div>
+          <div id="flight-data-error" class="error-message hidden"></div>
+        </section>
 
-          <div class="form-group">
-            <label for="origin-search">Origin Airport</label>
-            <div class="searchable-select" data-select-id="origin">
-              <input type="text" id="origin-search" placeholder="Search IATA or city..." autocomplete="off">
-              <select id="origin" name="origin" required aria-hidden="true" tabindex="-1">
-                <option value="">Loading...</option>
-              </select>
-              <div class="airport-dropdown" id="origin-dropdown" role="listbox"></div>
+        <!-- 2. Probability of Delay -->
+        <section class="card card-delay">
+          <h2 class="card-title">Probability of Delay</h2>
+          <div id="result-card" class="delay-result-wrap hidden">
+            <div class="delay-value-wrap">
+              <span class="result-probability" id="result-probability">--%</span>
             </div>
+            <p class="result-message" id="result-message"></p>
           </div>
-
-          <div class="form-group">
-            <label for="destination-search">Destination Airport</label>
-            <div class="searchable-select" data-select-id="destination">
-              <input type="text" id="destination-search" placeholder="Search IATA or city..." autocomplete="off">
-              <select id="destination" name="destination" required aria-hidden="true" tabindex="-1">
-                <option value="">Loading...</option>
-              </select>
-              <div class="airport-dropdown" id="destination-dropdown" role="listbox"></div>
-            </div>
+          <div id="loading" class="loading hidden" aria-hidden="true">
+            <div class="spinner"></div>
+            <p>Analyzing flight...</p>
           </div>
+          <div id="form-error" class="form-error error-message hidden"></div>
+        </section>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="departure-date">Departure Date</label>
-              <input type="date" id="departure-date" name="departure_date" required>
+        <!-- 3. Mistral AI News Check (spans 2 rows; result appears below dashed line) -->
+        <section class="card card-mistral-news">
+          <div class="mistral-news-top">
+            <h2 class="card-title"><img src="assets/mistral-symbol.png" alt="Mistral" class="mistral-symbol-inline"> AI News Check</h2>
+            <p class="card-description">Check for current disruptions, strikes, weather, or airspace closures on your route.</p>
+            <button type="button" class="btn btn-dark" id="mistral-btn">Check For Disruptions</button>
+            <div id="mistral-loading" class="loading hidden" aria-hidden="true">
+              <div class="spinner"></div>
+              <p>Searching for disruptions...</p>
             </div>
-            <div class="form-group">
-              <label for="departure-hour">Departure Hour (0–23)</label>
-              <input type="range" id="departure-hour" name="departure_hour" min="0" max="23" value="12">
-              <span class="hour-value" id="hour-display">12</span>
-            </div>
+            <div id="mistral-error" class="error-message hidden"></div>
           </div>
+          <div class="mistral-result-separator" aria-hidden="true"></div>
+          <div id="mistral-result" class="mistral-result hidden">
+            <div class="mistral-timestamp" id="mistral-timestamp"></div>
+            <div class="mistral-content" id="mistral-content"></div>
+          </div>
+        </section>
 
-          <button type="submit" class="btn btn-primary" id="submit-btn">
-            Check Flight
-          </button>
-        </form>
+        <!-- Local time – origin (grid: row 1, col 4) -->
+        <section class="card card-clock card-clock-origin">
+          <div class="clock-item">
+            <p class="clock-label" id="clock-origin-label">—</p>
+            <p class="clock-time" id="clock-origin-time">—</p>
+          </div>
+        </section>
 
-        <!-- Loading spinner -->
-        <div id="loading" class="loading hidden" aria-hidden="true">
-          <div class="spinner"></div>
-          <p>Analyzing flight...</p>
+        <!-- 4. Weather (placed at bottom row side by side) -->
+        <div id="weather-section" class="weather-cards-wrap hidden">
+          <section class="card card-weather">
+            <h2 class="card-title weather-location" id="weather-origin-label">Origin</h2>
+            <div id="weather-origin-content" class="weather-content"></div>
+            <div id="weather-origin-loading" class="weather-loading hidden">Loading...</div>
+            <div id="weather-origin-error" class="weather-error hidden"></div>
+          </section>
+          <section class="card card-weather card-weather-dest">
+            <h2 class="card-title weather-location" id="weather-destination-label">Destination</h2>
+            <div id="weather-destination-content" class="weather-content"></div>
+            <div id="weather-destination-loading" class="weather-loading hidden">Loading...</div>
+            <div id="weather-destination-error" class="weather-error hidden"></div>
+          </section>
         </div>
 
-        <!-- Result card -->
-        <div id="result-card" class="result-card hidden">
-          <div class="result-probability" id="result-probability">--%</div>
-          <span class="risk-badge" id="risk-badge">Low</span>
-          <p class="result-message" id="result-message"></p>
-        </div>
+        <!-- Local time – destination (grid: row 2, col 1) -->
+        <section class="card card-clock card-clock-dest">
+          <div class="clock-item">
+            <p class="clock-label" id="clock-dest-label">—</p>
+            <p class="clock-time" id="clock-dest-time">—</p>
+          </div>
+        </section>
 
-        <div id="form-error" class="error-message hidden"></div>
-      </section>
+        <!-- 6. AviAi Hero -->
+        <section class="card card-hero">
+          <video class="hero-bg-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+            <source src="14770254_3840_2160_30fps.mp4" type="video/mp4">
+          </video>
+          <div class="hero-bg" aria-hidden="true"></div>
+          <span class="hero-brand">AviAI</span>
+          <span class="hero-tagline">Relax and enjoy your flight</span>
+        </section>
 
-      <!-- Right: Mistral AI News Panel -->
-      <section class="panel right-panel">
-        <h2>Mistral AI News Check</h2>
-        <p class="panel-description">Check for current disruptions, strikes, weather, or airspace closures on your route.</p>
-        <button type="button" class="btn btn-secondary" id="mistral-btn">Check for Disruptions</button>
+        <!-- 9. Aircraft -->
+        <section class="card card-aircraft">
+          <p class="aircraft-type" id="aircraft-type">—</p>
+          <img id="aircraft-image" class="aircraft-image" src="" alt="" aria-hidden="true">
+        </section>
 
-        <div id="mistral-loading" class="loading hidden" aria-hidden="true">
-          <div class="spinner"></div>
-          <p>Searching for disruptions...</p>
-        </div>
+        <!-- 11. Airline Info -->
+        <section class="card card-airline">
+          <div class="airline-card-header">
+            <img id="airline-logo-card" class="airline-logo airline-logo-card" src="assets/airplane.png" alt="">
+            <h2 class="card-title" id="airline-name">Airline</h2>
+          </div>
+          <div class="airline-details" id="airline-details">
+            <p class="airline-contact">Website, phone, and address available from airline.</p>
+          </div>
+        </section>
 
-        <div id="mistral-result" class="mistral-result hidden">
-          <div class="mistral-timestamp" id="mistral-timestamp"></div>
-          <div class="mistral-content" id="mistral-content"></div>
-        </div>
+        <!-- Departure & Arrival Time -->
+        <section class="card card-times">
+          <h2 class="card-title">Departure & Arrival</h2>
+          <div class="times-content">
+            <div class="time-row">
+              <span class="time-label">Departure</span>
+              <span class="time-value" id="dep-time-display">—</span>
+            </div>
+            <div class="time-row">
+              <span class="time-label">Arrival</span>
+              <span class="time-value" id="arr-time-display">—</span>
+            </div>
+          </div>
+        </section>
 
-        <div id="mistral-error" class="error-message hidden"></div>
-      </section>
+        <!-- 12. Map / Route – removed -->
+
+        <!-- 13. Mistral Suggestion -->
+        <section class="card card-suggestion">
+          <h2 class="card-title"><img src="assets/mistral-symbol.png" alt="Mistral" class="mistral-symbol-inline"> Suggestion</h2>
+          <div class="mistral-result-separator" aria-hidden="true"></div>
+          <p class="suggestion-text" id="suggestion-text">Click the button to get tips for your origin and destination airports.</p>
+          <div id="suggestion-loading" class="loading suggestion-loading hidden" aria-hidden="true">
+            <div class="spinner"></div>
+            <p>Finding suggestions...</p>
+          </div>
+          <div id="suggestion-result" class="suggestion-result hidden">
+            <div class="suggestion-timestamp" id="suggestion-timestamp"></div>
+            <div class="suggestion-content" id="suggestion-content"></div>
+          </div>
+          <div id="suggestion-error" class="error-message hidden"></div>
+          <button type="button" class="btn btn-dark btn-suggestion" id="suggestion-btn">Click For Suggestion</button>
+        </section>
+
+        <!-- Weather cards are in #weather-section, placed at row 4 cols 3–4 via CSS -->
+      </div>
     </main>
   </div>
 
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=8"></script>
 </body>
 </html>
