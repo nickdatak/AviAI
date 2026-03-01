@@ -7,9 +7,9 @@ const API_BASE = 'https://aviai-production.up.railway.app';
 const MISTRAL_API_KEY = 'WOOaYSCNyVxWzMEtD7unH4gX637P6zJR';
 const FLIGHTAPI_KEY = '69a34ac0c32d581cf926c37d'; // Get from https://docs.flightapi.io
 
-/** Base path for assets; document <base> tag (set in index.html) makes this resolve on GitHub Pages */
+/** All assets live in docs/ – paths are filenames only (base tag in HTML handles GitHub Pages) */
 function getAssetBase() {
-  return 'assets/';
+  return '';
 }
 
 // IATA airline code -> full name lookup (from metadata: AA, AS, B6, DL, F9, G4, HA, MQ, NK, OH, OO, UA, WN, YX)
@@ -35,7 +35,7 @@ function formatAirline(code) {
   return AIRLINE_LOOKUP[key] || code;
 }
 
-// IATA code -> filename in docs/assets (use placeholder for unknown)
+// IATA code -> filename in docs (use placeholder for unknown)
 const AIRLINE_LOGO_ASSETS = {
   AA: 'dezeen_American-Airlines-logo-and-livery_4a-300x300.jpg',
   B6: 'jetblue-logo-editorial-illustrative-white-background-logo-icon-vector-logos-icons-set-social-media-flat-banner-vectors-svg-eps-210442882.jpg.webp',
@@ -52,7 +52,7 @@ function getAirlineLogoPath(airlineCode) {
   return getAssetBase() + filename;
 }
 
-// Aircraft type -> image in assets (Airbus: LH_A380_l.png, Boeing: LH_B744_l.png)
+// Aircraft type -> image in docs (Airbus: LH_A380_l.png, Boeing: LH_B744_l.png)
 function getAircraftImagePath(aircraftStr) {
   const s = String(aircraftStr || '').trim().toUpperCase();
   if (!s) return '';
