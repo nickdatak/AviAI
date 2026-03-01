@@ -7,13 +7,9 @@ const API_BASE = 'https://aviai-production.up.railway.app';
 const MISTRAL_API_KEY = 'WOOaYSCNyVxWzMEtD7unH4gX637P6zJR';
 const FLIGHTAPI_KEY = '69a34ac0c32d581cf926c37d'; // Get from https://docs.flightapi.io
 
-/** Base path for assets (works on GitHub Pages: /repo-name/ or /repo-name/docs/) */
+/** Base path for assets; document <base> tag (set in index.html) makes this resolve on GitHub Pages */
 function getAssetBase() {
-  if (typeof document === 'undefined' || !document.location) return './assets/';
-  const path = document.location.pathname;
-  const lastSlash = path.lastIndexOf('/');
-  if (lastSlash <= 0) return './assets/';
-  return path.substring(0, lastSlash + 1) + 'assets/';
+  return 'assets/';
 }
 
 // IATA airline code -> full name lookup (from metadata: AA, AS, B6, DL, F9, G4, HA, MQ, NK, OH, OO, UA, WN, YX)

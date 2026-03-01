@@ -4,17 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AviAI – Flight Delay Predictor</title>
+  <script>
+    (function() {
+      var path = document.location.pathname;
+      if (!path.endsWith('/')) path = path.replace(/\/[^/]*$/, '/') || '/';
+      document.write('<base href="' + document.location.origin + path + '">');
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="app">
     <!-- Initial step: enter flight number -->
     <section id="flight-number-step" class="flight-number-step">
       <header class="landing-header">
-        <img src="./assets/AVIAI-logo.png" alt="AviAI" class="landing-logo">
+        <img src="assets/AVIAI-logo.png" alt="AviAI" class="landing-logo">
       </header>
       <div class="flight-number-panel">
         <label for="flight-number">Enter your flight number</label>
@@ -32,7 +39,7 @@
         <section id="flight-data-section" class="card card-flight-details">
           <div class="flight-details-header">
             <span id="flight-number-display" class="flight-number-big">—</span>
-            <img id="airline-logo" class="airline-logo" src="./assets/airplane.png" alt="">
+            <img id="airline-logo" class="airline-logo" src="assets/airplane.png" alt="">
           </div>
           <div id="flight-data-content" class="flight-data-content"></div>
           <div id="flight-data-error" class="error-message hidden"></div>
@@ -57,7 +64,7 @@
         <!-- 3. Mistral AI News Check (spans 2 rows; result appears below dashed line) -->
         <section class="card card-mistral-news">
           <div class="mistral-news-top">
-            <h2 class="card-title"><img src="./assets/mistral-symbol.png" alt="Mistral" class="mistral-symbol-inline"> AI News Check</h2>
+            <h2 class="card-title"><img src="assets/mistral-symbol.png" alt="Mistral" class="mistral-symbol-inline"> AI News Check</h2>
             <p class="card-description">Check for current disruptions, strikes, weather, or airspace closures on your route.</p>
             <button type="button" class="btn btn-dark" id="mistral-btn">Check For Disruptions</button>
             <div id="mistral-loading" class="loading hidden" aria-hidden="true">
@@ -108,7 +115,7 @@
         <!-- 6. AviAi Hero -->
         <section class="card card-hero">
           <video class="hero-bg-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-            <source src="./14770254_3840_2160_30fps.mp4" type="video/mp4">
+            <source src="14770254_3840_2160_30fps.mp4" type="video/mp4">
           </video>
           <div class="hero-bg" aria-hidden="true"></div>
           <span class="hero-brand">AviAI</span>
@@ -124,7 +131,7 @@
         <!-- 11. Airline Info -->
         <section class="card card-airline">
           <div class="airline-card-header">
-            <img id="airline-logo-card" class="airline-logo airline-logo-card" src="./assets/airplane.png" alt="">
+            <img id="airline-logo-card" class="airline-logo airline-logo-card" src="assets/airplane.png" alt="">
             <h2 class="card-title" id="airline-name">Airline</h2>
           </div>
           <div class="airline-details" id="airline-details">
@@ -151,7 +158,7 @@
 
         <!-- 13. Mistral Suggestion -->
         <section class="card card-suggestion">
-          <h2 class="card-title"><img src="./assets/mistral-symbol.png" alt="Mistral" class="mistral-symbol-inline"> Suggestion</h2>
+          <h2 class="card-title"><img src="assets/mistral-symbol.png" alt="Mistral" class="mistral-symbol-inline"> Suggestion</h2>
           <div class="mistral-result-separator" aria-hidden="true"></div>
           <p class="suggestion-text" id="suggestion-text">Click the button to get tips for your origin and destination airports.</p>
           <div id="suggestion-loading" class="loading suggestion-loading hidden" aria-hidden="true">
@@ -171,6 +178,6 @@
     </main>
   </div>
 
-  <script src="./script.js?v=8"></script>
+  <script src="script.js?v=9"></script>
 </body>
 </html>
