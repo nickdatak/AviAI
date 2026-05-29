@@ -1,5 +1,7 @@
 # AviAI – Flight Delay Predictor
 
+**Currently disabled for cost reduction purposes**
+
 **AviAI** is a traveler-focused web app that answers questions: *“How likely is my flight to be delayed, and what should I know before I go?”* It combines a **machine-learning delay model** with **live flight data**, **weather**, and **AI-powered checks** so you get a single, clear dashboard for your upcoming trip.
 
 <img width="1920" height="1076" alt="1772884341267" src="https://github.com/user-attachments/assets/c1b7ac99-c1a4-4405-abf0-f788f43b5016" />
